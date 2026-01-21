@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
-import { Upload, CheckCircle, Share2, Shield, Sparkles, Users, ArrowRight } from "lucide-react";
+import { Upload, CheckCircle, Share2, Shield, Sparkles, Users, ArrowRight, Info } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const steps = [
@@ -41,6 +42,16 @@ const features = [
 ];
 
 const Index = () => {
+  const { user, role } = useAuth();
+
+  // Determine CTA based on auth state
+  const primaryCta = user 
+    ? { 
+        to: role === "recruiter" ? "/recruiter" : "/student", 
+        label: "Go to Dashboard" 
+      }
+    : { to: "/auth", label: "Get Started Free" };
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -75,14 +86,21 @@ const Index = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <Button variant="hero" size="xl" asChild>
-                <Link to="/signup">
-                  Get Started Free
+                <Link to={primaryCta.to}>
+                  {primaryCta.label}
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>
-              <Button variant="outline-hero" size="xl" asChild>
-                <Link to="/verify">Verify Certificate</Link>
-              </Button>
+              {!user && (
+                <Button variant="outline-hero" size="xl" asChild>
+                  <Link to="/support">Contact Us</Link>
+                </Button>
+              )}
+              {user && role === "candidate" && (
+                <Button variant="outline-hero" size="xl" asChild>
+                  <Link to="/verify">Verify Certificate</Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -165,6 +183,33 @@ const Index = () => {
         </div>
       </section>
 
+      {/* About Section */}
+      <section className="py-24 bg-secondary/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-start gap-4 mb-8">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Info className="w-7 h-7 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+                  About EduProof
+                </h2>
+                <p className="text-muted-foreground text-lg leading-relaxed mb-4">
+                  EduProof is a cutting-edge platform that bridges the gap between education and employment. 
+                  We use advanced AI technology to verify educational certificates, ensuring that every 
+                  achievement is authentic and trustworthy.
+                </p>
+                <p className="text-muted-foreground text-lg leading-relaxed">
+                  Our mission is to empower students to showcase their verified achievements and help 
+                  recruiters find genuine talent quickly. With EduProof, your credentials speak for themselves.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 gradient-hero opacity-5" />
@@ -179,8 +224,8 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="xl" asChild>
-                <Link to="/signup">
-                  Sign Up Now
+                <Link to={primaryCta.to}>
+                  {user ? "Go to Dashboard" : "Sign Up Now"}
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>
