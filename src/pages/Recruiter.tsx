@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Layout } from "@/components/layout/Layout";
 import { Search, FileText, Headphones, Users, Award, MapPin, Briefcase } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 // Placeholder candidate data
 const candidates = [
@@ -33,6 +34,8 @@ const candidates = [
 ];
 
 const Recruiter = () => {
+  const { user } = useAuth();
+  const userName = user?.email?.split("@")[0] || "there";
   return (
     <Layout>
       {/* Hero Section */}
@@ -45,10 +48,10 @@ const Recruiter = () => {
             </div>
             
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Hi there! 👋
+              Hi {userName}! 👋
             </h1>
             <p className="text-lg text-muted-foreground">
-              Find verified talent in seconds. Browse candidates with authenticated credentials and connect with confidence.
+              Discover verified talent quickly 😊 Browse candidates with authenticated credentials and connect with confidence.
             </p>
           </div>
         </div>
