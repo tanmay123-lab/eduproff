@@ -1,21 +1,51 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, GraduationCap } from "lucide-react";
+import { Menu, GraduationCap, LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-const navLinks = [
+const publicLinks = [
   { href: "/", label: "Home" },
-  { href: "/student", label: "Student" },
-  { href: "/recruiter", label: "Recruiter" },
-  { href: "/verify", label: "Verify Certificate" },
   { href: "/support", label: "Support" },
   { href: "/careers", label: "Careers" },
 ];
 
+const candidateLinks = [
+  { href: "/", label: "Home" },
+  { href: "/student", label: "Dashboard" },
+  { href: "/verify", label: "Verify Certificate" },
+  { href: "/support", label: "Support" },
+];
+
+const recruiterLinks = [
+  { href: "/", label: "Home" },
+  { href: "/recruiter", label: "Dashboard" },
+  { href: "/support", label: "Support" },
+];
+
 export function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, role, signOut } = useAuth();
+
+  // Determine which nav links to show based on auth state
+  const navLinks = user 
+    ? (role === "recruiter" ? recruiterLinks : candidateLinks)
+    : publicLinks;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
@@ -48,14 +78,42 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons / User Menu */}
           <div className="hidden lg:flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/login">Log In</Link>
-            </Button>
-            <Button variant="hero" size="sm" asChild>
-              <Link to="/signup">Sign Up</Link>
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <User className="w-4 h-4" />
+                    <span className="max-w-[120px] truncate">
+                      {user.email?.split("@")[0]}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link to={role === "recruiter" ? "/recruiter" : "/student"} className="cursor-pointer">
+                      <User className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/auth">Log In</Link>
+                </Button>
+                <Button variant="hero" size="sm" asChild>
+                  <Link to="/auth">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu */}
@@ -82,12 +140,26 @@ export function Navbar() {
                   </Link>
                 ))}
                 <div className="border-t border-border pt-4 mt-4 flex flex-col gap-3">
-                  <Button variant="outline" asChild>
-                    <Link to="/login" onClick={() => setIsOpen(false)}>Log In</Link>
-                  </Button>
-                  <Button variant="hero" asChild>
-                    <Link to="/signup" onClick={() => setIsOpen(false)}>Sign Up</Link>
-                  </Button>
+                  {user ? (
+                    <>
+                      <div className="px-4 py-2 text-sm text-muted-foreground">
+                        Signed in as <span className="font-medium text-foreground">{user.email}</span>
+                      </div>
+                      <Button variant="outline" onClick={() => { handleSignOut(); setIsOpen(false); }}>
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sign Out
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="outline" asChild>
+                        <Link to="/auth" onClick={() => setIsOpen(false)}>Log In</Link>
+                      </Button>
+                      <Button variant="hero" asChild>
+                        <Link to="/auth" onClick={() => setIsOpen(false)}>Sign Up</Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>
