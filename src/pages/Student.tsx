@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
-import { Upload, FileCheck, FileText, Award, Calendar, Building2 } from "lucide-react";
+import { Upload, FileCheck, FileText, Award, Calendar, Building2, Bell, CheckCircle, XCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 // Placeholder verified certificates data
 const certificates = [
@@ -28,24 +29,57 @@ const certificates = [
   },
 ];
 
+// Placeholder notifications
+const notifications = [
+  { id: 1, type: "success", message: "Your AWS Certificate was verified successfully! ✅", time: "2 hours ago" },
+  { id: 2, type: "info", message: "Welcome to EduProof! Start by uploading your first certificate.", time: "1 day ago" },
+];
+
 const Student = () => {
+  const { user } = useAuth();
+  const userName = user?.email?.split("@")[0] || "Achiever";
   return (
     <Layout>
       {/* Hero Section */}
       <section className="py-16 bg-gradient-to-b from-secondary/50 to-background">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 text-success text-sm font-medium mb-4">
-              <Award className="w-4 h-4" />
-              Student Dashboard
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 text-success text-sm font-medium mb-4">
+                <Award className="w-4 h-4" />
+                Candidate Dashboard
+              </div>
+              
+              <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Hello, {userName}! 👋
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                Your verified certificates await ✨ See your achievements and generate your CV. Your potential is ready to shine!
+              </p>
             </div>
-            
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Hello, Achiever! 👋
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              See your verified certificates and generate your CV. Your achievements are ready to shine!
-            </p>
+
+            {/* Notifications Panel */}
+            <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50 w-full lg:w-80 flex-shrink-0">
+              <div className="flex items-center gap-2 mb-4">
+                <Bell className="w-5 h-5 text-primary" />
+                <h3 className="font-display font-semibold text-foreground">Notifications</h3>
+              </div>
+              <div className="space-y-3">
+                {notifications.map((notif) => (
+                  <div key={notif.id} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
+                    {notif.type === "success" ? (
+                      <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <Bell className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground">{notif.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{notif.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
