@@ -1,43 +1,28 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
-import { Upload, FileCheck, FileText, Award, Calendar, Building2, Bell, CheckCircle, XCircle } from "lucide-react";
+import { Upload, FileCheck, FileText, Award, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-
-// Placeholder verified certificates data
-const certificates = [
-  {
-    id: 1,
-    title: "Full Stack Web Development",
-    issuer: "Coursera",
-    date: "January 2024",
-    status: "verified",
-  },
-  {
-    id: 2,
-    title: "Data Science Fundamentals",
-    issuer: "edX",
-    date: "December 2023",
-    status: "verified",
-  },
-  {
-    id: 3,
-    title: "Cloud Computing Certification",
-    issuer: "AWS",
-    date: "November 2023",
-    status: "verified",
-  },
-];
-
-// Placeholder notifications
-const notifications = [
-  { id: 1, type: "success", message: "Your AWS Certificate was verified successfully! ✅", time: "2 hours ago" },
-  { id: 2, type: "info", message: "Welcome to EduProof! Start by uploading your first certificate.", time: "1 day ago" },
-];
+import { useCertificates } from "@/hooks/useCertificates";
+import { CertificateCard } from "@/components/student/CertificateCard";
+import { NotificationsPanel } from "@/components/student/NotificationsPanel";
+import { toast } from "sonner";
 
 const Student = () => {
   const { user } = useAuth();
+  const { certificates, loading, deleteCertificate } = useCertificates();
   const userName = user?.email?.split("@")[0] || "Achiever";
+
+  const verifiedCertificates = certificates.filter(c => c.verification_status === "verified");
+
+  const handleDelete = async (id: string) => {
+    const { error } = await deleteCertificate(id);
+    if (error) {
+      toast.error(error);
+    } else {
+      toast.success("Certificate deleted successfully");
+    }
+  };
   return (
     <Layout>
       {/* Hero Section */}
@@ -59,27 +44,7 @@ const Student = () => {
             </div>
 
             {/* Notifications Panel */}
-            <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50 w-full lg:w-80 flex-shrink-0">
-              <div className="flex items-center gap-2 mb-4">
-                <Bell className="w-5 h-5 text-primary" />
-                <h3 className="font-display font-semibold text-foreground">Notifications</h3>
-              </div>
-              <div className="space-y-3">
-                {notifications.map((notif) => (
-                  <div key={notif.id} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
-                    {notif.type === "success" ? (
-                      <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <Bell className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground">{notif.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{notif.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <NotificationsPanel certificates={certificates} />
           </div>
         </div>
       </section>
@@ -142,10 +107,10 @@ const Student = () => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                Your Verified Certificates
+                Your Certificates
               </h2>
               <p className="text-muted-foreground">
-                All your authenticated credentials in one place
+                All your credentials in one place ({verifiedCertificates.length} verified)
               </p>
             </div>
             <Button variant="hero" asChild>
@@ -156,47 +121,21 @@ const Student = () => {
             </Button>
           </div>
 
-          <div className="grid gap-4">
-            {certificates.map((cert) => (
-              <div
-                key={cert.id}
-                className="bg-card rounded-xl p-6 shadow-soft border border-border/50 flex items-center gap-6 hover:shadow-medium transition-shadow"
-              >
-                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center flex-shrink-0">
-                  <Award className="w-6 h-6 text-success" />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display font-semibold text-foreground mb-1 truncate">
-                    {cert.title}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Building2 className="w-4 h-4" />
-                      {cert.issuer}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {cert.date}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 text-success text-sm font-medium">
-                    <FileCheck className="w-4 h-4" />
-                    Verified
-                  </span>
-                  <Button variant="outline" size="sm">
-                    View
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Empty state - shown when no certificates */}
-          {certificates.length === 0 && (
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : certificates.length > 0 ? (
+            <div className="grid gap-4">
+              {certificates.map((cert) => (
+                <CertificateCard 
+                  key={cert.id} 
+                  certificate={cert} 
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          ) : (
             <div className="text-center py-16 bg-secondary/30 rounded-2xl">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <FileCheck className="w-8 h-8 text-muted-foreground" />
