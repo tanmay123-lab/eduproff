@@ -1,14 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
 import { Upload, Sparkles, FileCheck, AlertCircle, Loader2 } from "lucide-react";
+import { useCertificates } from "@/hooks/useCertificates";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Verify = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addCertificate, updateCertificateStatus } = useCertificates();
+  
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [title, setTitle] = useState("");
+  const [issuer, setIssuer] = useState("");
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -36,21 +46,47 @@ const Verify = () => {
   };
 
   const handleVerify = async () => {
-    if (!file) return;
+    if (!file || !title || !issuer) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!user) {
+      toast.error("Please log in to upload certificates");
+      navigate("/auth");
+      return;
+    }
 
     setIsVerifying(true);
 
-    // Simulate AI verification API call
-    // In production, replace this with actual API call
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+    try {
+      // Add certificate to database
+      const { data: certificate, error } = await addCertificate(title, issuer);
+      
+      if (error || !certificate) {
+        toast.error(error || "Failed to upload certificate");
+        setIsVerifying(false);
+        return;
+      }
 
-    // Simulate random result (80% success rate for demo)
-    const isSuccess = Math.random() > 0.2;
+      // Simulate AI verification API call
+      // In production, replace this with actual API call
+      await new Promise((resolve) => setTimeout(resolve, 2500));
 
-    if (isSuccess) {
-      navigate("/upload-success");
-    } else {
-      navigate("/upload-failed");
+      // Simulate random result (80% success rate for demo)
+      const isSuccess = Math.random() > 0.2;
+
+      if (isSuccess) {
+        await updateCertificateStatus(certificate.id, "verified", "Certificate verified successfully");
+        navigate("/upload-success");
+      } else {
+        await updateCertificateStatus(certificate.id, "failed", "Could not verify certificate authenticity");
+        navigate("/upload-failed");
+      }
+    } catch (err) {
+      toast.error("An error occurred during verification");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -139,6 +175,28 @@ const Verify = () => {
               )}
             </div>
 
+            {/* Certificate Details Form */}
+            <div className="mt-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Certificate Title *</Label>
+                <Input
+                  id="title"
+                  placeholder="e.g., Full Stack Web Development"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="issuer">Issuing Organization *</Label>
+                <Input
+                  id="issuer"
+                  placeholder="e.g., Coursera, AWS, Google"
+                  value={issuer}
+                  onChange={(e) => setIssuer(e.target.value)}
+                />
+              </div>
+            </div>
+
             {/* Info Box */}
             <div className="mt-6 p-4 rounded-xl bg-secondary/50 border border-border">
               <div className="flex items-start gap-3">
@@ -159,7 +217,7 @@ const Verify = () => {
               size="xl"
               className="w-full mt-8"
               onClick={handleVerify}
-              disabled={!file || isVerifying}
+              disabled={!file || !title || !issuer || isVerifying}
             >
               {isVerifying ? (
                 <>
