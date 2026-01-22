@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Student from "./pages/Student";
 import Recruiter from "./pages/Recruiter";
 import Verify from "./pages/Verify";
+import GenerateCV from "./pages/GenerateCV";
 import UploadSuccess from "./pages/UploadSuccess";
 import UploadFailed from "./pages/UploadFailed";
 import Support from "./pages/Support";
@@ -67,6 +68,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["candidate"]}>
                   <UploadFailed />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/generate-cv" 
+              element={
+                <ProtectedRoute allowedRoles={["candidate"]}>
+                  <GenerateCV />
                 </ProtectedRoute>
               } 
             />

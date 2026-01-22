@@ -7,7 +7,18 @@ import { Layout } from "@/components/layout/Layout";
 import { Upload, Sparkles, FileCheck, AlertCircle, Loader2 } from "lucide-react";
 import { useCertificates } from "@/hooks/useCertificates";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Helper to convert file to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 const Verify = () => {
   const navigate = useNavigate();
@@ -60,27 +71,63 @@ const Verify = () => {
     setIsVerifying(true);
 
     try {
-      // Add certificate to database
-      const { data: certificate, error } = await addCertificate(title, issuer);
-      
-      if (error || !certificate) {
-        toast.error(error || "Failed to upload certificate");
+      // Convert file to base64 for AI analysis
+      let imageBase64: string | null = null;
+      if (file.type.startsWith("image/")) {
+        imageBase64 = await fileToBase64(file);
+      }
+
+      // Call AI verification edge function
+      const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
+        "verify-certificate",
+        {
+          body: { title, issuer, imageBase64 },
+        }
+      );
+
+      if (verifyError) {
+        console.error("Verification error:", verifyError);
+        toast.error("Verification service unavailable. Please try again.");
         setIsVerifying(false);
         return;
       }
 
-      // Simulate AI verification API call
-      // In production, replace this with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      // Handle rate limits and payment errors
+      if (verificationResult?.error) {
+        toast.error(verificationResult.error);
+        setIsVerifying(false);
+        return;
+      }
 
-      // Simulate random result (80% success rate for demo)
-      const isSuccess = Math.random() > 0.2;
+      // Add certificate to database with verification result
+      const { data: certificate, error } = await addCertificate(
+        verificationResult.extractedTitle || title,
+        verificationResult.extractedIssuer || issuer,
+        verificationResult.extractedDate || undefined
+      );
+      
+      if (error || !certificate) {
+        toast.error(error || "Failed to save certificate");
+        setIsVerifying(false);
+        return;
+      }
 
-      if (isSuccess) {
-        await updateCertificateStatus(certificate.id, "verified", "Certificate verified successfully");
+      // Update status based on AI verification
+      const isVerified = verificationResult.verified && verificationResult.confidence >= 70;
+      
+      if (isVerified) {
+        await updateCertificateStatus(
+          certificate.id, 
+          "verified", 
+          verificationResult.details || "Certificate verified successfully"
+        );
         navigate("/upload-success");
       } else {
-        await updateCertificateStatus(certificate.id, "failed", "Could not verify certificate authenticity");
+        await updateCertificateStatus(
+          certificate.id, 
+          "failed", 
+          verificationResult.details || "Could not verify certificate authenticity"
+        );
         navigate("/upload-failed");
       }
     } catch (err) {
