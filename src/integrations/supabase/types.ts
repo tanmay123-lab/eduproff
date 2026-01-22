@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      certificates: {
+        Row: {
+          certificate_url: string | null
+          created_at: string
+          id: string
+          issue_date: string | null
+          issuer: string
+          title: string
+          updated_at: string
+          user_id: string
+          verification_message: string | null
+          verification_status: string
+        }
+        Insert: {
+          certificate_url?: string | null
+          created_at?: string
+          id?: string
+          issue_date?: string | null
+          issuer: string
+          title: string
+          updated_at?: string
+          user_id: string
+          verification_message?: string | null
+          verification_status?: string
+        }
+        Update: {
+          certificate_url?: string | null
+          created_at?: string
+          id?: string
+          issue_date?: string | null
+          issuer?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          verification_message?: string | null
+          verification_status?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
