@@ -56,6 +56,28 @@ const Verify = () => {
     }
   };
 
+  const uploadCertificateFile = async (file: File, certificateId: string): Promise<string | null> => {
+    if (!user) return null;
+    
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${user.id}/${certificateId}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('certificates')
+      .upload(filePath, file, { upsert: true });
+    
+    if (uploadError) {
+      console.error("Upload error:", uploadError);
+      return null;
+    }
+    
+    const { data } = supabase.storage
+      .from('certificates')
+      .getPublicUrl(filePath);
+    
+    return data.publicUrl;
+  };
+
   const handleVerify = async () => {
     if (!file || !title || !issuer) {
       toast.error("Please fill in all required fields");
@@ -112,6 +134,17 @@ const Verify = () => {
         return;
       }
 
+      // Upload file to storage and get URL
+      const fileUrl = await uploadCertificateFile(file, certificate.id);
+      
+      if (fileUrl) {
+        // Update certificate with file URL
+        await supabase
+          .from('certificates')
+          .update({ certificate_url: fileUrl })
+          .eq('id', certificate.id);
+      }
+
       // Update status based on AI verification
       const isVerified = verificationResult.verified && verificationResult.confidence >= 70;
       
@@ -136,7 +169,6 @@ const Verify = () => {
       setIsVerifying(false);
     }
   };
-
   return (
     <Layout>
       {/* Hero Section */}
