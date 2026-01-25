@@ -76,11 +76,8 @@ const Verify = () => {
       return null;
     }
     
-    const { data } = supabase.storage
-      .from('certificates')
-      .getPublicUrl(filePath);
-    
-    return data.publicUrl;
+    // Return file path for private bucket - signed URLs will be generated on-demand when viewing
+    return filePath;
   };
 
   const handleVerify = async () => {
