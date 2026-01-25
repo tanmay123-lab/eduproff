@@ -104,19 +104,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error("Error creating profile:", profileError);
         }
 
-        // Create user role
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert({
-            user_id: data.user.id,
-            role: selectedRole,
-          });
+        // Call secure edge function to assign role
+        // The trigger creates 'candidate' by default, this updates to user's selection
+        const { error: roleError } = await supabase.functions.invoke(
+          'assign-role',
+          { body: { requestedRole: selectedRole } }
+        );
 
         if (roleError) {
-          console.error("Error creating user role:", roleError);
+          console.error("Error assigning role:", roleError);
+          // Don't fail signup, but fetch the actual role from DB
+          const userRole = await fetchUserRole(data.user.id);
+          setRole(userRole);
+        } else {
+          setRole(selectedRole);
         }
-
-        setRole(selectedRole);
       }
 
       return { error: null };
