@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,31 +23,33 @@ interface VerificationResult {
 }
 
 export default function PublicVerify() {
+  const [searchParams] = useSearchParams();
   const [certificateId, setCertificateId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const { toast } = useToast();
 
-  const handleVerify = async () => {
-    if (!certificateId.trim()) {
-      toast({
-        title: "Enter Certificate ID",
-        description: "Please enter a certificate ID to verify.",
-        variant: "destructive",
-      });
-      return;
+  // Auto-verify if ID is in URL
+  useEffect(() => {
+    const idFromUrl = searchParams.get("id");
+    if (idFromUrl) {
+      setCertificateId(idFromUrl);
+      handleVerifyById(idFromUrl);
     }
+  }, [searchParams]);
 
+  const handleVerifyById = async (id: string) => {
+    if (!id.trim()) return;
+    
     setIsLoading(true);
     setResult(null);
 
     try {
       const { data, error } = await supabase.functions.invoke("public-verify", {
-        body: { certificateId: certificateId.trim() },
+        body: { certificateId: id.trim() },
       });
 
       if (error) throw error;
-
       setResult(data);
     } catch (error) {
       console.error("Verification error:", error);
@@ -60,6 +63,17 @@ export default function PublicVerify() {
     }
   };
 
+  const handleVerify = () => {
+    if (!certificateId.trim()) {
+      toast({
+        title: "Enter Certificate ID",
+        description: "Please enter a certificate ID to verify.",
+        variant: "destructive",
+      });
+      return;
+    }
+    handleVerifyById(certificateId);
+  };
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "verified":
