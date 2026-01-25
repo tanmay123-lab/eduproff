@@ -29,6 +29,11 @@ const Verify = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [title, setTitle] = useState("");
+  
+  // Validation constants
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_TITLE_LENGTH = 200;
+  const MAX_ISSUER_LENGTH = 200;
   const [issuer, setIssuer] = useState("");
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -79,8 +84,26 @@ const Verify = () => {
   };
 
   const handleVerify = async () => {
-    if (!file || !title || !issuer) {
+    if (!file || !title.trim() || !issuer.trim()) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File must be less than 10MB");
+      return;
+    }
+
+    // Validate title length
+    if (title.trim().length > MAX_TITLE_LENGTH) {
+      toast.error(`Title must be less than ${MAX_TITLE_LENGTH} characters`);
+      return;
+    }
+
+    // Validate issuer length
+    if (issuer.trim().length > MAX_ISSUER_LENGTH) {
+      toast.error(`Issuer must be less than ${MAX_ISSUER_LENGTH} characters`);
       return;
     }
 
@@ -257,21 +280,23 @@ const Verify = () => {
             {/* Certificate Details Form */}
             <div className="mt-6 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Certificate Title *</Label>
+                <Label htmlFor="title">Certificate Title * <span className="text-muted-foreground text-xs">({title.length}/{MAX_TITLE_LENGTH})</span></Label>
                 <Input
                   id="title"
                   placeholder="e.g., Full Stack Web Development"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => setTitle(e.target.value.slice(0, MAX_TITLE_LENGTH))}
+                  maxLength={MAX_TITLE_LENGTH}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="issuer">Issuing Organization *</Label>
+                <Label htmlFor="issuer">Issuing Organization * <span className="text-muted-foreground text-xs">({issuer.length}/{MAX_ISSUER_LENGTH})</span></Label>
                 <Input
                   id="issuer"
                   placeholder="e.g., Coursera, AWS, Google"
                   value={issuer}
-                  onChange={(e) => setIssuer(e.target.value)}
+                  onChange={(e) => setIssuer(e.target.value.slice(0, MAX_ISSUER_LENGTH))}
+                  maxLength={MAX_ISSUER_LENGTH}
                 />
               </div>
             </div>

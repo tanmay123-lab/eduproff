@@ -1,10 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// UUID validation schema
+const CertificateIdSchema = z.object({
+  certificateId: z.string().uuid("Invalid certificate ID format"),
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -13,15 +19,26 @@ serve(async (req) => {
   }
 
   try {
-    const { certificateId } = await req.json();
-
-    if (!certificateId) {
+    // Parse and validate request body
+    let body;
+    try {
+      body = await req.json();
+    } catch {
       return new Response(
-        JSON.stringify({ error: "Certificate ID is required" }),
+        JSON.stringify({ error: "Invalid request body" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    const validated = CertificateIdSchema.safeParse(body);
+    if (!validated.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid certificate ID format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { certificateId } = validated.data;
     console.log(`Public verification request for certificate: ${certificateId}`);
 
     // Create Supabase client with service role to bypass RLS
