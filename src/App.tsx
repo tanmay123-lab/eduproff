@@ -15,6 +15,7 @@ import UploadSuccess from "./pages/UploadSuccess";
 import UploadFailed from "./pages/UploadFailed";
 import Support from "./pages/Support";
 import Careers from "./pages/Careers";
+import PublicVerify from "./pages/PublicVerify";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,7 @@ const App = () => (
             />
             <Route path="/support" element={<Support />} />
             <Route path="/careers" element={<Careers />} />
+            <Route path="/check" element={<PublicVerify />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
