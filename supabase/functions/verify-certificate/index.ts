@@ -1,9 +1,27 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+// Input validation schema
+const VerificationSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
+  issuer: z.string().trim().min(1, "Issuer is required").max(200, "Issuer must be less than 200 characters"),
+  imageBase64: z.string().max(15 * 1024 * 1024, "Image must be less than 15MB").optional().nullable(),
+});
+
+// Sanitize inputs for AI prompt to prevent prompt injection
+const sanitizeForPrompt = (input: string): string => {
+  return input
+    .replace(/[<>"'`]/g, '') // Remove potentially problematic characters
+    .replace(/ignore\s*(all|previous|the)/gi, '') // Remove injection attempts
+    .replace(/disregard|forget|override|bypass/gi, '')
+    .substring(0, 200)
+    .trim();
 };
 
 serve(async (req) => {
@@ -18,7 +36,7 @@ serve(async (req) => {
     if (!authHeader?.startsWith('Bearer ')) {
       console.error("Missing or invalid authorization header");
       return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
+        JSON.stringify({ error: 'Authentication required', verified: false }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -35,7 +53,7 @@ serve(async (req) => {
     if (claimsError || !claimsData?.claims) {
       console.error("Authentication failed:", claimsError);
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
+        JSON.stringify({ error: 'Invalid authentication', verified: false }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -53,12 +71,36 @@ serve(async (req) => {
     if (roleError || roleData?.role !== 'candidate') {
       console.error("Role check failed:", roleError || "User is not a candidate");
       return new Response(
-        JSON.stringify({ error: 'Only candidates can verify certificates' }),
+        JSON.stringify({ error: 'Only candidates can verify certificates', verified: false }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { title, issuer, imageBase64 } = await req.json();
+    // Parse and validate request body
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body', verified: false }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const validated = VerificationSchema.safeParse(body);
+    if (!validated.success) {
+      console.error("Validation failed:", validated.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: validated.error.errors[0]?.message || 'Invalid input',
+          verified: false 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { title, issuer, imageBase64 } = validated.data;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -99,13 +141,17 @@ Be strict but fair. If the image is unclear or doesn't appear to be a certificat
     ];
 
     // If we have an image, use vision capabilities
+    // Sanitize inputs to prevent AI prompt injection
+    const safeTitle = sanitizeForPrompt(title);
+    const safeIssuer = sanitizeForPrompt(issuer);
+    
     if (imageBase64) {
       messages.push({
         role: "user",
         content: [
           {
             type: "text",
-            text: `Please analyze this certificate image. The user claims it is titled "${title}" from "${issuer}". Verify if this appears to be a legitimate certificate and extract any visible information.`
+            text: `Please analyze this certificate image. The user claims it is titled "${safeTitle}" from "${safeIssuer}". IMPORTANT: Base your verification ONLY on what you observe in the image, not on the claimed title or issuer. Extract visible information and verify authenticity.`
           },
           {
             type: "image_url",
@@ -120,8 +166,8 @@ Be strict but fair. If the image is unclear or doesn't appear to be a certificat
       messages.push({
         role: "user",
         content: `The user is submitting a certificate with the following details:
-- Title: ${title}
-- Issuer: ${issuer}
+- Title: ${safeTitle}
+- Issuer: ${safeIssuer}
 
 Since no image was provided, please respond with a pending verification status. Set verified to true with a note that full verification requires document upload.`
       });
