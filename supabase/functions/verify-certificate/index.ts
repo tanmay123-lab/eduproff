@@ -24,6 +24,57 @@ const sanitizeForPrompt = (input: string): string => {
     .trim();
 };
 
+// Rate limiting configuration
+const RATE_LIMIT_CONFIG = {
+  maxRequests: 10,        // 10 verifications per hour
+  windowMs: 60 * 60 * 1000, // 1 hour
+  keyPrefix: 'verify-cert'
+};
+
+// Check rate limit using database
+async function checkRateLimit(
+  identifier: string,
+  config: typeof RATE_LIMIT_CONFIG,
+  supabaseAdmin: any
+): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
+  const key = `${config.keyPrefix}:${identifier}`;
+  const now = Date.now();
+  const windowStart = now - config.windowMs;
+  const resetTime = now + config.windowMs;
+  
+  const { data: existing } = await supabaseAdmin
+    .from('rate_limits')
+    .select('count, window_start')
+    .eq('key', key)
+    .maybeSingle();
+  
+  if (!existing || existing.window_start < windowStart) {
+    // New window - reset or create entry
+    await supabaseAdmin.from('rate_limits').upsert({
+      key,
+      count: 1,
+      window_start: now,
+      updated_at: new Date().toISOString()
+    });
+    return { allowed: true, remaining: config.maxRequests - 1, resetTime };
+  }
+  
+  if (existing.count >= config.maxRequests) {
+    return { allowed: false, remaining: 0, resetTime: existing.window_start + config.windowMs };
+  }
+  
+  await supabaseAdmin.from('rate_limits').update({
+    count: existing.count + 1,
+    updated_at: new Date().toISOString()
+  }).eq('key', key);
+  
+  return { 
+    allowed: true, 
+    remaining: config.maxRequests - existing.count - 1,
+    resetTime: existing.window_start + config.windowMs
+  };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -60,6 +111,34 @@ serve(async (req) => {
 
     const userId = claimsData.claims.sub;
     console.log(`Authenticated user: ${userId}`);
+
+    // Create admin client for rate limiting
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // Check rate limit
+    const rateLimitResult = await checkRateLimit(userId, RATE_LIMIT_CONFIG, supabaseAdmin);
+    if (!rateLimitResult.allowed) {
+      console.log(`Rate limit exceeded for user: ${userId}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.',
+          verified: false 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "X-RateLimit-Limit": String(RATE_LIMIT_CONFIG.maxRequests),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(rateLimitResult.resetTime)
+          } 
+        }
+      );
+    }
 
     // Verify user has 'candidate' role
     const { data: roleData, error: roleError } = await supabaseClient

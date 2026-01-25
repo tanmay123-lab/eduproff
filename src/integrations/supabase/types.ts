@@ -80,6 +80,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          count: number
+          key: string
+          updated_at: string | null
+          window_start: number
+        }
+        Insert: {
+          count?: number
+          key: string
+          updated_at?: string | null
+          window_start: number
+        }
+        Update: {
+          count?: number
+          key?: string
+          updated_at?: string | null
+          window_start?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
