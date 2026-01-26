@@ -1,41 +1,146 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Layout } from "@/components/layout/Layout";
-import { Search, FileText, Headphones, Users, Award, MapPin, Briefcase } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { 
+  Search, 
+  FileText, 
+  Headphones, 
+  Users, 
+  Award, 
+  CheckCircle,
+  XCircle,
+  Clock,
+  Calendar,
+  Building2,
+  ExternalLink,
+  Loader2
+} from "lucide-react";
 
-// Placeholder candidate data
-const candidates = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    title: "Full Stack Developer",
-    location: "San Francisco, CA",
-    certifications: 5,
-    skills: ["React", "Node.js", "Python"],
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    title: "Data Scientist",
-    location: "New York, NY",
-    certifications: 4,
-    skills: ["Python", "TensorFlow", "SQL"],
-  },
-  {
-    id: 3,
-    name: "Emily Davis",
-    title: "Cloud Engineer",
-    location: "Seattle, WA",
-    certifications: 6,
-    skills: ["AWS", "Kubernetes", "Terraform"],
-  },
-];
+interface Certificate {
+  id: string;
+  title: string;
+  issuer: string;
+  issue_date: string | null;
+  verification_status: string;
+  verification_message: string | null;
+  created_at: string;
+  user_id: string;
+  profile?: {
+    full_name: string | null;
+  };
+}
 
 const Recruiter = () => {
   const { user } = useAuth();
   const userName = user?.email?.split("@")[0] || "there";
+  
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  useEffect(() => {
+    fetchVerifiedCertificates();
+  }, []);
+
+  useEffect(() => {
+    filterCertificates();
+  }, [certificates, searchQuery, statusFilter]);
+
+  const fetchVerifiedCertificates = async () => {
+    try {
+      // Fetch verified certificates (RLS allows recruiters to see verified certs)
+      const { data: certsData, error: certsError } = await supabase
+        .from("certificates")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (certsError) throw certsError;
+
+      // Fetch profiles for the certificates
+      if (certsData && certsData.length > 0) {
+        const userIds = [...new Set(certsData.map(c => c.user_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", userIds);
+
+        const profileMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+        
+        const enrichedCerts = certsData.map(cert => ({
+          ...cert,
+          profile: profileMap.get(cert.user_id) || { full_name: null }
+        }));
+        
+        setCertificates(enrichedCerts);
+      } else {
+        setCertificates([]);
+      }
+    } catch (error) {
+      console.error("Error fetching certificates:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterCertificates = () => {
+    let filtered = certificates;
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(c => c.verification_status === statusFilter);
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(c => 
+        c.title.toLowerCase().includes(query) ||
+        c.issuer.toLowerCase().includes(query) ||
+        c.profile?.full_name?.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredCertificates(filtered);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "verified":
+        return (
+          <Badge className="bg-success/10 text-success border-success/20">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Verified
+          </Badge>
+        );
+      case "failed":
+        return (
+          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+            <XCircle className="w-3 h-3 mr-1" />
+            Failed
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
+            <Clock className="w-3 h-3 mr-1" />
+            Pending
+          </Badge>
+        );
+    }
+  };
+
+  const stats = {
+    total: certificates.length,
+    verified: certificates.filter(c => c.verification_status === "verified").length,
+    pending: certificates.filter(c => c.verification_status === "pending").length,
+    failed: certificates.filter(c => c.verification_status === "failed").length,
+  };
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -51,43 +156,95 @@ const Recruiter = () => {
               Hi {userName}! 👋
             </h1>
             <p className="text-lg text-muted-foreground">
-              Discover verified talent quickly 😊 Browse candidates with authenticated credentials and connect with confidence.
+              View all verified certificates and discover authenticated talent with confidence.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Action Buttons */}
-      <section className="py-12">
+      {/* Stats Section */}
+      <section className="py-8">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-card rounded-xl p-5 shadow-soft border border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                  <p className="text-sm text-muted-foreground">Total</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-card rounded-xl p-5 shadow-soft border border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.verified}</p>
+                  <p className="text-sm text-muted-foreground">Verified</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-card rounded-xl p-5 shadow-soft border border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-warning" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.pending}</p>
+                  <p className="text-sm text-muted-foreground">Pending</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-card rounded-xl p-5 shadow-soft border border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+                  <XCircle className="w-5 h-5 text-destructive" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.failed}</p>
+                  <p className="text-sm text-muted-foreground">Failed</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions */}
+      <section className="py-8">
         <div className="container mx-auto px-4">
           <div className="grid sm:grid-cols-3 gap-6">
-            <Link
-              to="#search"
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
+            <button
+              onClick={() => document.getElementById("certificates")?.scrollIntoView({ behavior: "smooth" })}
+              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group text-left"
             >
               <div className="w-14 h-14 rounded-xl gradient-hero flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Search className="w-7 h-7 text-primary-foreground" />
+                <Award className="w-7 h-7 text-primary-foreground" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                Search Candidates
+                View All Certificates
               </h3>
               <p className="text-muted-foreground text-sm">
-                Find talent with verified credentials
+                Browse all verified credentials
               </p>
-            </Link>
+            </button>
 
             <Link
-              to="#candidates"
+              to="/verify"
               className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
             >
               <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <FileText className="w-7 h-7 text-primary" />
+                <Search className="w-7 h-7 text-primary" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                View Candidate CVs
+                Verify Certificate
               </h3>
               <p className="text-muted-foreground text-sm">
-                Browse complete verified profiles
+                Check a specific certificate
               </p>
             </Link>
 
@@ -109,94 +266,150 @@ const Recruiter = () => {
         </div>
       </section>
 
-      {/* Search Section */}
-      <section id="search" className="py-12">
+      {/* Search and Filter */}
+      <section className="py-8">
         <div className="container mx-auto px-4">
-          <div className="bg-card rounded-2xl p-8 shadow-soft border border-border/50">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-6">
-              Search Verified Candidates
-            </h2>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+          <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Search by skill, job title, or certification..."
-                  className="h-12"
+                  placeholder="Search by title, issuer, or candidate name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-11"
                 />
               </div>
-              <Button variant="hero" size="lg">
-                <Search className="w-4 h-4" />
-                Search
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant={statusFilter === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter("all")}
+                >
+                  All
+                </Button>
+                <Button
+                  variant={statusFilter === "verified" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter("verified")}
+                  className={statusFilter === "verified" ? "bg-success hover:bg-success/90" : ""}
+                >
+                  Verified
+                </Button>
+                <Button
+                  variant={statusFilter === "pending" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter("pending")}
+                >
+                  Pending
+                </Button>
+                <Button
+                  variant={statusFilter === "failed" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter("failed")}
+                  className={statusFilter === "failed" ? "bg-destructive hover:bg-destructive/90" : ""}
+                >
+                  Failed
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Candidates List */}
-      <section id="candidates" className="py-12 pb-24">
+      {/* Certificates List */}
+      <section id="certificates" className="py-8 pb-24">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                Featured Candidates
-              </h2>
+          <div className="mb-6">
+            <h2 className="font-display text-2xl font-bold text-foreground mb-2">
+              All Verifications
+            </h2>
+            <p className="text-muted-foreground">
+              {filteredCertificates.length} certificate{filteredCertificates.length !== 1 ? "s" : ""} found
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : filteredCertificates.length === 0 ? (
+            <div className="bg-card rounded-2xl p-12 shadow-soft border border-border/50 text-center">
+              <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                No certificates found
+              </h3>
               <p className="text-muted-foreground">
-                Top verified professionals ready for opportunities
+                {searchQuery || statusFilter !== "all" 
+                  ? "Try adjusting your search or filters" 
+                  : "No verified certificates available yet"}
               </p>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredCertificates.map((cert) => (
+                <div
+                  key={cert.id}
+                  className="bg-card rounded-xl p-6 shadow-soft border border-border/50 hover:shadow-medium transition-shadow"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl gradient-hero flex items-center justify-center flex-shrink-0">
+                          <Award className="w-6 h-6 text-primary-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className="font-display font-semibold text-foreground truncate">
+                              {cert.title}
+                            </h3>
+                            {getStatusBadge(cert.verification_status)}
+                          </div>
+                          
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Building2 className="w-3.5 h-3.5" />
+                              {cert.issuer}
+                            </span>
+                            {cert.issue_date && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3.5 h-3.5" />
+                                {new Date(cert.issue_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {cert.profile?.full_name && (
+                              <span className="flex items-center gap-1">
+                                <Users className="w-3.5 h-3.5" />
+                                {cert.profile.full_name}
+                              </span>
+                            )}
+                          </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {candidates.map((candidate) => (
-              <div
-                key={candidate.id}
-                className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium transition-shadow"
-              >
-                {/* Avatar placeholder */}
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="w-14 h-14 rounded-full gradient-hero flex items-center justify-center text-primary-foreground font-bold text-lg">
-                    {candidate.name.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-display font-semibold text-foreground truncate">
-                      {candidate.name}
-                    </h3>
-                    <p className="text-muted-foreground text-sm flex items-center gap-1">
-                      <Briefcase className="w-3 h-3" />
-                      {candidate.title}
-                    </p>
+                          {cert.verification_message && (
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                              {cert.verification_message}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 md:flex-shrink-0">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/public-verify?id=${cert.id}`}>
+                          <ExternalLink className="w-4 h-4 mr-1" />
+                          View Details
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    {candidate.location}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-success">
-                    <Award className="w-4 h-4" />
-                    {candidate.certifications} Verified Certificates
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {candidate.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-medium"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-
-                <Button variant="outline" className="w-full">
-                  View Full Profile
-                </Button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </Layout>
