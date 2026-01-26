@@ -1,17 +1,37 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
-import { Upload, FileCheck, FileText, Award, Loader2 } from "lucide-react";
+import { Upload, FileCheck, FileText, Award, Loader2, Mail, CheckCircle, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCertificates } from "@/hooks/useCertificates";
 import { CertificateCard } from "@/components/student/CertificateCard";
 import { NotificationsPanel } from "@/components/student/NotificationsPanel";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Student = () => {
   const { user } = useAuth();
   const { certificates, loading, deleteCertificate } = useCertificates();
   const userName = user?.email?.split("@")[0] || "Achiever";
+  const isEmailVerified = !!user?.email_confirmed_at;
+
+  const handleResendVerification = async () => {
+    if (!user?.email) return;
+    
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: user.email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+      },
+    });
+    
+    if (error) {
+      toast.error("Failed to send verification email");
+    } else {
+      toast.success("Verification email sent! Check your inbox.");
+    }
+  };
 
   const verifiedCertificates = certificates.filter(c => c.verification_status === "verified");
 
@@ -25,14 +45,61 @@ const Student = () => {
   };
   return (
     <Layout>
+      {/* Email Verification Banner */}
+      {!isEmailVerified && (
+        <div className="bg-warning/10 border-b border-warning/20">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-4 h-4 text-warning" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Please verify your email address
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Check your inbox for the verification link to unlock all features
+                  </p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleResendVerification}
+                className="flex-shrink-0"
+              >
+                <Mail className="w-4 h-4 mr-1" />
+                Resend Email
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="py-16 bg-gradient-to-b from-secondary/50 to-background">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 text-success text-sm font-medium mb-4">
-                <Award className="w-4 h-4" />
-                Candidate Dashboard
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 text-success text-sm font-medium">
+                  <Award className="w-4 h-4" />
+                  Candidate Dashboard
+                </div>
+                
+                {/* Email Status Badge */}
+                {isEmailVerified ? (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-medium">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Email Verified
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-warning/10 text-warning text-xs font-medium">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Email Not Verified
+                  </div>
+                )}
               </div>
               
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
