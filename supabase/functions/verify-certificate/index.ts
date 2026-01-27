@@ -11,7 +11,7 @@ const corsHeaders = {
 const VerificationSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
   issuer: z.string().trim().min(1, "Issuer is required").max(200, "Issuer must be less than 200 characters"),
-  imageBase64: z.string().max(15 * 1024 * 1024, "Image must be less than 15MB").optional().nullable(),
+  fileType: z.enum(["pdf"]).optional(),
 });
 
 // Sanitize inputs for AI prompt to prevent prompt injection
@@ -178,7 +178,7 @@ serve(async (req) => {
       );
     }
 
-    const { title, issuer, imageBase64 } = validated.data;
+    const { title, issuer } = validated.data;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
@@ -189,68 +189,54 @@ serve(async (req) => {
 
     console.log(`Verifying certificate: ${title} from ${issuer} for user ${userId}`);
 
-    // Build messages for AI verification
+    // Sanitize inputs to prevent AI prompt injection
+    const safeTitle = sanitizeForPrompt(title);
+    const safeIssuer = sanitizeForPrompt(issuer);
+
+    // Build messages for AI verification (PDF-only, text-based verification)
     const messages: any[] = [
       {
         role: "system",
-        content: `You are a certificate verification AI assistant. Your job is to analyze certificates and verify their authenticity.
+        content: `You are a certificate verification AI assistant. Your job is to validate certificate submissions based on provided metadata.
 
-When analyzing a certificate, look for:
-1. Professional formatting and layout typical of educational/professional certificates
-2. Presence of issuing organization name and logo
-3. Certificate title/name of the course or achievement
-4. Recipient name or designation area
-5. Date of completion or issuance
-6. Signatures, seals, or verification codes
-7. Accreditation marks or official stamps
+Since we only accept PDF uploads (no image analysis), you will verify based on the provided title and issuer information.
+
+Validation criteria:
+1. The certificate title should be specific and professional (e.g., "AWS Solutions Architect", "Full Stack Web Development")
+2. The issuer should be a recognizable educational institution, certification body, or professional organization
+3. Check if the issuer is known to offer such certifications
+4. Flag generic or suspicious entries
 
 Provide a verification result as JSON with this structure:
 {
   "verified": boolean,
   "confidence": number (0-100),
-  "extractedTitle": string,
-  "extractedIssuer": string,
-  "extractedDate": string or null,
-  "details": string (brief explanation of verification),
-  "warnings": string[] (any concerns found)
+  "extractedTitle": string (the cleaned/normalized title),
+  "extractedIssuer": string (the cleaned/normalized issuer),
+  "extractedDate": null,
+  "details": string (brief explanation of verification decision),
+  "warnings": string[] (any concerns about the submission)
 }
 
-Be strict but fair. If the image is unclear or doesn't appear to be a certificate, set verified to false with appropriate explanation.`
+Set verified to true if:
+- The title appears to be a legitimate certificate/course name
+- The issuer is a recognized organization that offers such certifications
+- No obvious red flags are present
+
+Set verified to false if:
+- The title is too generic, nonsensical, or suspicious
+- The issuer is unknown or doesn't match the type of certification claimed
+- There are clear inconsistencies`
+      },
+      {
+        role: "user",
+        content: `Please verify this certificate submission:
+- Certificate Title: ${safeTitle}
+- Issuing Organization: ${safeIssuer}
+
+The user has uploaded a PDF document which will be stored for manual review if needed. Based on the metadata provided, determine if this appears to be a legitimate certificate submission.`
       }
     ];
-
-    // If we have an image, use vision capabilities
-    // Sanitize inputs to prevent AI prompt injection
-    const safeTitle = sanitizeForPrompt(title);
-    const safeIssuer = sanitizeForPrompt(issuer);
-    
-    if (imageBase64) {
-      messages.push({
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `Please analyze this certificate image. The user claims it is titled "${safeTitle}" from "${safeIssuer}". IMPORTANT: Base your verification ONLY on what you observe in the image, not on the claimed title or issuer. Extract visible information and verify authenticity.`
-          },
-          {
-            type: "image_url",
-            image_url: {
-              url: imageBase64.startsWith("data:") ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`
-            }
-          }
-        ]
-      });
-    } else {
-      // Text-only verification (limited capability)
-      messages.push({
-        role: "user",
-        content: `The user is submitting a certificate with the following details:
-- Title: ${safeTitle}
-- Issuer: ${safeIssuer}
-
-Since no image was provided, please respond with a pending verification status. Set verified to true with a note that full verification requires document upload.`
-      });
-    }
 
     console.log("Calling AI gateway for verification...");
 
