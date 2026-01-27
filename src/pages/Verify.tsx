@@ -10,14 +10,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Helper to convert file to base64
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
+// PDF-only validation
+const ALLOWED_TYPES = ['application/pdf'];
+const ALLOWED_EXTENSIONS = ['pdf'];
+
+const validateFileType = (file: File): boolean => {
+  const extension = file.name.split('.').pop()?.toLowerCase() || '';
+  if (!ALLOWED_TYPES.includes(file.type) || !ALLOWED_EXTENSIONS.includes(extension)) {
+    toast.error("Only PDF files are accepted. Please upload a PDF certificate.");
+    return false;
+  }
+  return true;
 };
 
 const Verify = () => {
@@ -49,14 +52,14 @@ const Verify = () => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
+    if (droppedFile && validateFileType(droppedFile)) {
       setFile(droppedFile);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
+    if (selectedFile && validateFileType(selectedFile)) {
       setFile(selectedFile);
     }
   };
@@ -113,17 +116,11 @@ const Verify = () => {
     setIsVerifying(true);
 
     try {
-      // Convert file to base64 for AI analysis
-      let imageBase64: string | null = null;
-      if (file.type.startsWith("image/")) {
-        imageBase64 = await fileToBase64(file);
-      }
-
-      // Call AI verification edge function
+      // Call AI verification edge function (PDF-only, no image analysis)
       const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
         "verify-certificate",
         {
-          body: { title, issuer, imageBase64 },
+          body: { title, issuer, fileType: "pdf" },
         }
       );
 
@@ -230,7 +227,7 @@ const Verify = () => {
             >
               <input
                 type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
+                accept=".pdf"
                 onChange={handleFileChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
@@ -264,10 +261,10 @@ const Verify = () => {
                   </div>
                   <div>
                     <p className="font-medium text-foreground">
-                      Drag and drop your certificate here
+                      Drag and drop your certificate PDF here
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      or click to browse (PDF, JPG, PNG)
+                      or click to browse (PDF only)
                     </p>
                   </div>
                 </div>
@@ -303,10 +300,10 @@ const Verify = () => {
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-muted-foreground">
-                  <p className="font-medium text-foreground mb-1">Supported formats</p>
+                  <p className="font-medium text-foreground mb-1">PDF Only</p>
                   <p>
-                    We accept PDF, JPG, and PNG files up to 10MB. Make sure your certificate 
-                    is clearly visible and all text is readable.
+                    We accept PDF files up to 10MB. Please ensure your certificate 
+                    is in PDF format for verification.
                   </p>
                 </div>
               </div>
