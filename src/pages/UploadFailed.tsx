@@ -1,16 +1,50 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
-import { XCircle, RefreshCw, Headphones, AlertTriangle, ArrowRight } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
+import { XCircle, RefreshCw, Headphones, ArrowRight, Shield, Search, FileCheck, AlertTriangle, CheckCircle } from "lucide-react";
 
-const reasons = [
-  "The certificate image quality may be too low",
-  "The document format might not be recognized",
-  "The certificate issuer may not be in our database yet",
-  "The document may have been modified or tampered with",
-];
+interface VerificationCheck {
+  name: string;
+  passed: boolean;
+  score: number;
+  details: string;
+}
+
+interface LocationState {
+  trustScore?: number;
+  checks?: VerificationCheck[];
+  explanation?: string;
+}
 
 const UploadFailed = () => {
+  const location = useLocation();
+  const state = location.state as LocationState | null;
+  
+  const trustScore = state?.trustScore ?? 35;
+  const checks = state?.checks ?? [
+    { name: "Code Format Validation", passed: false, score: 20, details: "Could not verify code format for this issuer" },
+    { name: "Duplicate Check", passed: true, score: 100, details: "No duplicate certificates found" },
+    { name: "Consistency Checks", passed: false, score: 40, details: "Issuer not recognized or title doesn't match" },
+  ];
+  const explanation = state?.explanation ?? "Some verification checks failed. Please review and try again.";
+
+  const getCheckIcon = (name: string) => {
+    switch (name) {
+      case "Code Format Validation":
+        return Shield;
+      case "Duplicate Check":
+        return Search;
+      case "Consistency Checks":
+        return FileCheck;
+      default:
+        return AlertTriangle;
+    }
+  };
+
+  const failedChecks = checks.filter(c => !c.passed);
+
   return (
     <Layout>
       <section className="min-h-[80vh] flex items-center py-16">
@@ -30,32 +64,75 @@ const UploadFailed = () => {
               Certificate verification failed ❌
             </p>
             <p className="text-muted-foreground mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              Don't worry – this happens sometimes! There are a few reasons why verification might fail. 
-              You can try again or reach out to our support team for help.
+              Don't worry – this happens sometimes! Review the checks below to understand why.
             </p>
 
-            {/* Possible Reasons Card */}
-            <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 mb-8 text-left animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-              <div className="flex items-start gap-3 mb-4">
-                <AlertTriangle className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                <h3 className="font-display font-semibold text-foreground">
-                  Possible reasons for failure
+            {/* Trust Score Card */}
+            <Card className="mb-6 shadow-medium border-destructive/20 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-semibold text-foreground">Trust Score</span>
+                  <span className={`text-2xl font-bold ${
+                    trustScore >= 70 ? 'text-success' : trustScore >= 50 ? 'text-warning' : 'text-destructive'
+                  }`}>{trustScore}%</span>
+                </div>
+                <Progress 
+                  value={trustScore} 
+                  className={`h-3 mb-4 ${trustScore < 50 ? '[&>div]:bg-destructive' : ''}`}
+                />
+                <p className="text-sm text-muted-foreground text-left">{explanation}</p>
+              </CardContent>
+            </Card>
+
+            {/* Verification Checks Card */}
+            <Card className="mb-8 shadow-soft animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+              <CardContent className="pt-6">
+                <h3 className="font-semibold text-foreground mb-4 text-left flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-warning" />
+                  Verification Checks ({failedChecks.length} failed)
                 </h3>
-              </div>
-              <ul className="space-y-3">
-                {reasons.map((reason, index) => (
-                  <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <span className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 text-xs font-medium">
-                      {index + 1}
-                    </span>
-                    {reason}
-                  </li>
-                ))}
-              </ul>
-            </div>
+                <div className="space-y-3">
+                  {checks.map((check, index) => {
+                    const Icon = getCheckIcon(check.name);
+                    return (
+                      <div 
+                        key={index} 
+                        className={`flex items-start gap-3 p-3 rounded-lg ${
+                          check.passed ? 'bg-success/5' : 'bg-destructive/5'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          check.passed ? 'bg-success/10' : 'bg-destructive/10'
+                        }`}>
+                          <Icon className={`w-4 h-4 ${check.passed ? 'text-success' : 'text-destructive'}`} />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm text-foreground">{check.name}</span>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              check.passed 
+                                ? 'bg-success/10 text-success' 
+                                : 'bg-destructive/10 text-destructive'
+                            }`}>
+                              {check.score}%
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">{check.details}</p>
+                        </div>
+                        {check.passed ? (
+                          <CheckCircle className="w-5 h-5 flex-shrink-0 text-success" />
+                        ) : (
+                          <XCircle className="w-5 h-5 flex-shrink-0 text-destructive" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
               <Button variant="hero" size="lg" asChild>
                 <Link to="/verify">
                   <RefreshCw className="w-4 h-4" />
@@ -70,7 +147,7 @@ const UploadFailed = () => {
               </Button>
             </div>
 
-            <div className="mt-6 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+            <div className="mt-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
               <Button variant="ghost" asChild>
                 <Link to="/">
                   Back to Home
