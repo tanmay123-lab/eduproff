@@ -201,11 +201,23 @@ serve(async (req) => {
 
 Since we only accept PDF uploads (no image analysis), you will verify based on the provided title and issuer information.
 
-Validation criteria:
-1. The certificate title should be specific and professional (e.g., "AWS Solutions Architect", "Full Stack Web Development")
-2. The issuer should be a recognizable educational institution, certification body, or professional organization
-3. Check if the issuer is known to offer such certifications
-4. Flag generic or suspicious entries
+CRITICAL VALIDATION CRITERIA:
+
+1. **Required Verification Identifiers** - The certificate MUST contain at least one of these identifier types:
+   - Enrolment Verification Code
+   - User Verification Code
+   - Certificate ID
+   - Student ID
+   
+   These identifiers are essential markers of authentic educational certificates. Certificates without any of these should be flagged.
+
+2. The certificate title should be specific and professional (e.g., "AWS Solutions Architect", "Full Stack Web Development", "Data Science Fundamentals")
+
+3. The issuer should be a recognizable educational institution, certification body, or professional organization (e.g., Coursera, Udemy, AWS, Google, universities, coding bootcamps)
+
+4. Check if the issuer is known to offer such certifications
+
+5. Flag generic, vague, or suspicious entries
 
 Provide a verification result as JSON with this structure:
 {
@@ -215,17 +227,20 @@ Provide a verification result as JSON with this structure:
   "extractedIssuer": string (the cleaned/normalized issuer),
   "extractedDate": null,
   "details": string (brief explanation of verification decision),
-  "warnings": string[] (any concerns about the submission)
+  "warnings": string[] (any concerns about the submission),
+  "hasVerificationCode": boolean (whether the certificate likely contains a verification identifier)
 }
 
 Set verified to true if:
 - The title appears to be a legitimate certificate/course name
 - The issuer is a recognized organization that offers such certifications
+- The certificate type typically includes verification codes (Enrolment Verification Code, User Verification Code, Certificate ID, or Student ID)
 - No obvious red flags are present
 
 Set verified to false if:
 - The title is too generic, nonsensical, or suspicious
 - The issuer is unknown or doesn't match the type of certification claimed
+- The certificate type would not typically have verification identifiers
 - There are clear inconsistencies`
       },
       {
@@ -234,7 +249,13 @@ Set verified to false if:
 - Certificate Title: ${safeTitle}
 - Issuing Organization: ${safeIssuer}
 
-The user has uploaded a PDF document which will be stored for manual review if needed. Based on the metadata provided, determine if this appears to be a legitimate certificate submission.`
+The user has uploaded a PDF document. Authentic certificates from reputable issuers typically include verification identifiers such as:
+- Enrolment Verification Code
+- User Verification Code
+- Certificate ID
+- Student ID
+
+Based on the metadata provided, determine if this appears to be a legitimate certificate from an organization that provides such verification codes. If the issuer is known, assess whether their certificates typically include these identifiers.`
       }
     ];
 
