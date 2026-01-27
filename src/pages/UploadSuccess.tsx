@@ -1,9 +1,48 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
-import { CheckCircle, FileText, Share2, ArrowRight, Download } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle, FileText, Share2, ArrowRight, Shield, CheckCheck, Search, FileCheck } from "lucide-react";
+
+interface VerificationCheck {
+  name: string;
+  passed: boolean;
+  score: number;
+  details: string;
+}
+
+interface LocationState {
+  trustScore?: number;
+  checks?: VerificationCheck[];
+  explanation?: string;
+}
 
 const UploadSuccess = () => {
+  const location = useLocation();
+  const state = location.state as LocationState | null;
+  
+  const trustScore = state?.trustScore ?? 85;
+  const checks = state?.checks ?? [
+    { name: "Code Format Validation", passed: true, score: 90, details: "Verification code format recognized" },
+    { name: "Duplicate Check", passed: true, score: 100, details: "No duplicate certificates found" },
+    { name: "Consistency Checks", passed: true, score: 85, details: "Title and issuer are consistent" },
+  ];
+  const explanation = state?.explanation ?? "All verification checks passed successfully.";
+
+  const getCheckIcon = (name: string) => {
+    switch (name) {
+      case "Code Format Validation":
+        return Shield;
+      case "Duplicate Check":
+        return Search;
+      case "Consistency Checks":
+        return FileCheck;
+      default:
+        return CheckCheck;
+    }
+  };
+
   return (
     <Layout>
       <section className="min-h-[80vh] flex items-center py-16">
@@ -25,33 +64,65 @@ const UploadSuccess = () => {
               Your certificate is verified ✅
             </p>
             <p className="text-muted-foreground mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              Your achievement has been authenticated and added to your profile. 
-              You can now share it with recruiters or add it to your CV.
+              Your achievement has been authenticated and added to your profile.
             </p>
 
-            {/* Certificate Preview Card */}
-            <div className="bg-card rounded-2xl p-6 shadow-medium border border-success/20 mb-8 text-left animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-6 h-6 text-success" />
+            {/* Trust Score Card */}
+            <Card className="mb-6 shadow-medium border-success/20 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-semibold text-foreground">Trust Score</span>
+                  <span className="text-2xl font-bold text-success">{trustScore}%</span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-display font-semibold text-foreground mb-1">
-                    Certificate Verified
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Verified on {new Date().toLocaleDateString()}
-                  </p>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 text-success text-sm font-medium">
-                    <CheckCircle className="w-4 h-4" />
-                    Authenticated
-                  </span>
+                <Progress value={trustScore} className="h-3 mb-4" />
+                <p className="text-sm text-muted-foreground text-left">{explanation}</p>
+              </CardContent>
+            </Card>
+
+            {/* Verification Checks Card */}
+            <Card className="mb-8 shadow-soft animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+              <CardContent className="pt-6">
+                <h3 className="font-semibold text-foreground mb-4 text-left">Verification Checks</h3>
+                <div className="space-y-3">
+                  {checks.map((check, index) => {
+                    const Icon = getCheckIcon(check.name);
+                    return (
+                      <div 
+                        key={index} 
+                        className={`flex items-start gap-3 p-3 rounded-lg ${
+                          check.passed ? 'bg-success/5' : 'bg-warning/5'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          check.passed ? 'bg-success/10' : 'bg-warning/10'
+                        }`}>
+                          <Icon className={`w-4 h-4 ${check.passed ? 'text-success' : 'text-warning'}`} />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm text-foreground">{check.name}</span>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              check.passed 
+                                ? 'bg-success/10 text-success' 
+                                : 'bg-warning/10 text-warning'
+                            }`}>
+                              {check.score}%
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">{check.details}</p>
+                        </div>
+                        <CheckCircle className={`w-5 h-5 flex-shrink-0 ${
+                          check.passed ? 'text-success' : 'text-warning'
+                        }`} />
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
               <Button variant="hero" size="lg" asChild>
                 <Link to="/student">
                   View Your CV
@@ -64,7 +135,7 @@ const UploadSuccess = () => {
               </Button>
             </div>
 
-            <div className="mt-6 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+            <div className="mt-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
               <Button variant="ghost" asChild>
                 <Link to="/verify">
                   Verify Another Certificate

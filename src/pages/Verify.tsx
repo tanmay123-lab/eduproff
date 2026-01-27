@@ -162,23 +162,30 @@ const Verify = () => {
           .eq('id', certificate.id);
       }
 
-      // Update status based on AI verification
-      const isVerified = verificationResult.verified && verificationResult.confidence >= 70;
+      // Update status based on AI verification (using trustScore instead of confidence)
+      const isVerified = verificationResult.verified && verificationResult.trustScore >= 70;
+      
+      // Prepare state for result pages
+      const resultState = {
+        trustScore: verificationResult.trustScore,
+        checks: verificationResult.checks,
+        explanation: verificationResult.explanation
+      };
       
       if (isVerified) {
         await updateCertificateStatus(
           certificate.id, 
           "verified", 
-          verificationResult.details || "Certificate verified successfully"
+          verificationResult.explanation || "Certificate verified successfully"
         );
-        navigate("/upload-success");
+        navigate("/upload-success", { state: resultState });
       } else {
         await updateCertificateStatus(
           certificate.id, 
           "failed", 
-          verificationResult.details || "Could not verify certificate authenticity"
+          verificationResult.explanation || "Could not verify certificate authenticity"
         );
-        navigate("/upload-failed");
+        navigate("/upload-failed", { state: resultState });
       }
     } catch (err) {
       toast.error("An error occurred during verification");
