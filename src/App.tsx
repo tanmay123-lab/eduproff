@@ -16,6 +16,11 @@ import UploadFailed from "./pages/UploadFailed";
 import Support from "./pages/Support";
 import Careers from "./pages/Careers";
 import PublicVerify from "./pages/PublicVerify";
+import HowItWorks from "./pages/HowItWorks";
+import Demo from "./pages/Demo";
+import About from "./pages/About";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +37,11 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Auth />} />
             <Route path="/signup" element={<Auth />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/demo" element={<Demo />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route 
               path="/student" 
               element={
