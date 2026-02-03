@@ -95,13 +95,13 @@ async function checkRateLimit(
   };
 }
 
-// Check 1: Code Format Validation
-async function checkCodeFormat(
+// Primary Check: User ID / Candidate ID Detection
+async function checkForUserOrCandidateId(
   title: string, 
   issuer: string,
   LOVABLE_API_KEY: string
-): Promise<VerificationCheck> {
-  console.log("Running Check 1: Code Format Validation");
+): Promise<{ hasId: boolean; idType: string | null; confidence: number; reason: string }> {
+  console.log("Running Primary Check: User ID / Candidate ID Detection");
   
   const safeTitle = sanitizeForPrompt(title);
   const safeIssuer = sanitizeForPrompt(issuer);
@@ -109,35 +109,35 @@ async function checkCodeFormat(
   const messages = [
     {
       role: "system",
-      content: `You are a certificate verification AI. Analyze if the certificate from the given issuer typically includes verification identifiers.
+      content: `You are a strict certificate verification AI. Your ONLY job is to determine if the certificate contains a User ID or Candidate ID.
 
-REQUIRED VERIFICATION IDENTIFIERS:
-- Enrolment Verification Code
-- User Verification Code
-- Certificate ID
+VALID IDENTIFIERS (certificate is GENUINE if it has ANY of these):
+- User ID
+- Candidate ID
 - Student ID
+- Enrollment ID
+- Registration Number
+- Roll Number
+- Learner ID
+- Participant ID
+- Certificate ID with user-specific number
+- Credential ID
 
-Known issuers that provide verification codes:
-- Coursera (provides Certificate ID and Verification URL)
-- Udemy (provides Certificate ID)
-- AWS (provides Validation Number)
-- Google (provides Credential ID)
-- Microsoft (provides Certificate Number)
-- LinkedIn Learning (provides Certificate ID)
-- edX (provides Certificate ID)
-- Universities (provide Student ID/Enrolment Number)
+IMPORTANT: The certificate MUST explicitly contain one of these identifiers to be considered genuine.
+
+Analyze the certificate title and issuer to determine if this type of certificate from this issuer would contain a User ID or Candidate ID.
 
 Respond with JSON:
 {
-  "hasCode": boolean (true if this issuer's certificates typically have verification codes),
-  "codeType": string (the type of code they use, e.g., "Certificate ID", "Verification URL"),
+  "hasUserOrCandidateId": boolean (true ONLY if certificate would have User ID, Candidate ID, or similar personal identifier),
+  "idType": string or null (the specific type found, e.g., "Student ID", "Candidate ID", "User ID"),
   "confidence": number (0-100),
-  "reason": string (brief explanation)
+  "reason": string (brief explanation of why this is genuine or fake)
 }`
     },
     {
       role: "user",
-      content: `Certificate: "${safeTitle}" from "${safeIssuer}". Does this issuer typically provide verification codes on their certificates?`
+      content: `Certificate: "${safeTitle}" from "${safeIssuer}". Does this certificate contain a User ID, Candidate ID, or similar personal identifier?`
     }
   ];
 
@@ -164,35 +164,32 @@ Respond with JSON:
     const result = JSON.parse(content);
 
     return {
-      name: "Code Format Validation",
-      passed: result.hasCode === true,
-      score: result.hasCode ? Math.min(result.confidence || 80, 100) : 20,
-      details: result.reason || (result.hasCode 
-        ? `This issuer provides ${result.codeType || "verification codes"} on certificates`
-        : "Could not confirm verification code format for this issuer")
+      hasId: result.hasUserOrCandidateId === true,
+      idType: result.idType || null,
+      confidence: result.confidence || 50,
+      reason: result.reason || "Unable to determine"
     };
   } catch (error) {
-    console.error("Code format check error:", error);
+    console.error("ID check error:", error);
     return {
-      name: "Code Format Validation",
-      passed: false,
-      score: 30,
-      details: "Unable to verify code format - issuer may not be recognized"
+      hasId: false,
+      idType: null,
+      confidence: 0,
+      reason: "Unable to verify - AI check failed"
     };
   }
 }
 
-// Check 2: Duplicate Check
+// Duplicate Check (secondary, only run if ID check passes)
 async function checkDuplicate(
   title: string,
   issuer: string,
   userId: string,
   supabaseAdmin: any
 ): Promise<VerificationCheck> {
-  console.log("Running Check 2: Duplicate Check");
+  console.log("Running Secondary Check: Duplicate Check");
   
   try {
-    // Check for exact duplicates
     const { data: exactDuplicates } = await supabaseAdmin
       .from('certificates')
       .select('id, title, issuer, verification_status')
@@ -205,23 +202,7 @@ async function checkDuplicate(
         name: "Duplicate Check",
         passed: false,
         score: 0,
-        details: `Exact duplicate found: You already have this certificate "${title}" from ${issuer}`
-      };
-    }
-
-    // Check for similar certificates (same issuer)
-    const { data: similarCerts } = await supabaseAdmin
-      .from('certificates')
-      .select('id, title, issuer')
-      .eq('user_id', userId)
-      .ilike('issuer', issuer.trim());
-
-    if (similarCerts && similarCerts.length > 0) {
-      return {
-        name: "Duplicate Check",
-        passed: true,
-        score: 80,
-        details: `You have ${similarCerts.length} other certificate(s) from ${issuer}. This appears to be a new one.`
+        details: `Duplicate found: You already have "${title}" from ${issuer}`
       };
     }
 
@@ -229,7 +210,7 @@ async function checkDuplicate(
       name: "Duplicate Check",
       passed: true,
       score: 100,
-      details: "No duplicate certificates found - this is a new submission"
+      details: "No duplicate certificates found"
     };
   } catch (error) {
     console.error("Duplicate check error:", error);
@@ -237,117 +218,8 @@ async function checkDuplicate(
       name: "Duplicate Check",
       passed: true,
       score: 70,
-      details: "Duplicate check completed with limited data"
+      details: "Duplicate check completed"
     };
-  }
-}
-
-// Check 3: Basic Consistency Checks
-async function checkConsistency(
-  title: string,
-  issuer: string,
-  LOVABLE_API_KEY: string
-): Promise<VerificationCheck> {
-  console.log("Running Check 3: Consistency Checks");
-  
-  const safeTitle = sanitizeForPrompt(title);
-  const safeIssuer = sanitizeForPrompt(issuer);
-
-  const messages = [
-    {
-      role: "system",
-      content: `You are a certificate verification AI. Perform consistency checks on the certificate submission.
-
-CHECK CRITERIA:
-1. Title Quality: Is it specific and professional? (not generic like "Certificate" or "Course")
-2. Issuer Recognition: Is this a known educational institution, certification body, or professional organization?
-3. Title-Issuer Match: Does the certification type match what this issuer offers?
-4. Red Flags: Any suspicious patterns, typos, or inconsistencies?
-
-Respond with JSON:
-{
-  "titleQuality": { "score": number (0-100), "issue": string or null },
-  "issuerRecognition": { "score": number (0-100), "known": boolean, "type": string },
-  "titleIssuerMatch": { "score": number (0-100), "matches": boolean, "reason": string },
-  "redFlags": string[] (list of concerns, empty if none),
-  "overallScore": number (0-100),
-  "summary": string (brief overall assessment)
-}`
-    },
-    {
-      role: "user",
-      content: `Verify consistency for: Certificate "${safeTitle}" from "${safeIssuer}"`
-    }
-  ];
-
-  try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages,
-        response_format: { type: "json_object" },
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`AI error: ${response.status}`);
-    }
-
-    const aiResponse = await response.json();
-    const content = aiResponse.choices?.[0]?.message?.content;
-    const result = JSON.parse(content);
-
-    const hasRedFlags = result.redFlags && result.redFlags.length > 0;
-    const passed = result.overallScore >= 60 && !hasRedFlags;
-
-    return {
-      name: "Consistency Checks",
-      passed,
-      score: result.overallScore || 50,
-      details: result.summary || "Consistency check completed"
-    };
-  } catch (error) {
-    console.error("Consistency check error:", error);
-    return {
-      name: "Consistency Checks",
-      passed: true,
-      score: 60,
-      details: "Basic consistency check passed"
-    };
-  }
-}
-
-// Calculate overall trust score
-function calculateTrustScore(checks: VerificationCheck[]): number {
-  if (checks.length === 0) return 0;
-  
-  // Weighted average: Code Format (40%), Duplicate (20%), Consistency (40%)
-  const weights = [0.4, 0.2, 0.4];
-  let totalScore = 0;
-  
-  checks.forEach((check, index) => {
-    totalScore += check.score * (weights[index] || 0.33);
-  });
-  
-  return Math.round(totalScore);
-}
-
-// Generate explanation based on checks
-function generateExplanation(checks: VerificationCheck[], trustScore: number): string {
-  const passedChecks = checks.filter(c => c.passed);
-  const failedChecks = checks.filter(c => !c.passed);
-  
-  if (trustScore >= 80) {
-    return `Strong verification: ${passedChecks.length}/3 checks passed. ${passedChecks.map(c => c.details).join('. ')}`;
-  } else if (trustScore >= 60) {
-    return `Moderate verification: ${passedChecks.length}/3 checks passed. Some concerns: ${failedChecks.map(c => c.details).join('. ')}`;
-  } else {
-    return `Verification concerns: Only ${passedChecks.length}/3 checks passed. Issues: ${failedChecks.map(c => c.details).join('. ')}`;
   }
 }
 
@@ -463,36 +335,63 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log(`Starting 3-step verification for: ${title} from ${issuer}`);
+    console.log(`Starting ID-based verification for: ${title} from ${issuer}`);
 
-    // Run all 3 verification checks
-    const checks: VerificationCheck[] = [];
+    // PRIMARY CHECK: User ID / Candidate ID Detection
+    const idCheck = await checkForUserOrCandidateId(title, issuer, LOVABLE_API_KEY);
+    console.log("ID Check result:", idCheck);
 
-    // Check 1: Code Format Validation
-    const codeFormatCheck = await checkCodeFormat(title, issuer, LOVABLE_API_KEY);
-    checks.push(codeFormatCheck);
-    console.log("Check 1 result:", codeFormatCheck);
+    // If NO User ID or Candidate ID found - STOP and mark as FAKE
+    if (!idCheck.hasId) {
+      console.log("No User ID / Candidate ID found - marking as FAKE");
+      
+      const verificationResult: VerificationResult = {
+        verified: false,
+        trustScore: 0,
+        checks: [{
+          name: "User/Candidate ID Check",
+          passed: false,
+          score: 0,
+          details: idCheck.reason
+        }],
+        explanation: `FAKE CERTIFICATE: ${idCheck.reason}. No User ID, Candidate ID, or similar personal identifier was detected. Genuine certificates from reputable issuers always include a unique identifier.`,
+        extractedTitle: title.trim(),
+        extractedIssuer: issuer.trim(),
+        extractedDate: null,
+        warnings: ["No User ID or Candidate ID found - certificate cannot be verified"],
+        hasVerificationCode: false
+      };
 
-    // Check 2: Duplicate Check
+      return new Response(JSON.stringify(verificationResult), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ID FOUND - Run secondary duplicate check
     const duplicateCheck = await checkDuplicate(title, issuer, userId, supabaseAdmin);
-    checks.push(duplicateCheck);
-    console.log("Check 2 result:", duplicateCheck);
+    console.log("Duplicate Check result:", duplicateCheck);
 
-    // Check 3: Consistency Checks
-    const consistencyCheck = await checkConsistency(title, issuer, LOVABLE_API_KEY);
-    checks.push(consistencyCheck);
-    console.log("Check 3 result:", consistencyCheck);
+    // Build checks array
+    const checks: VerificationCheck[] = [
+      {
+        name: "User/Candidate ID Check",
+        passed: true,
+        score: idCheck.confidence,
+        details: `${idCheck.idType || "Personal ID"} detected: ${idCheck.reason}`
+      },
+      duplicateCheck
+    ];
 
-    // Calculate overall trust score
-    const trustScore = calculateTrustScore(checks);
-    console.log("Trust score:", trustScore);
+    // Calculate trust score (ID check is primary - 80%, Duplicate is 20%)
+    const trustScore = Math.round((idCheck.confidence * 0.8) + (duplicateCheck.score * 0.2));
 
-    // Determine verification status
-    const allChecksPassed = checks.every(c => c.passed);
-    const verified = trustScore >= 70 && allChecksPassed;
+    // Verified if ID found and not a duplicate
+    const verified = idCheck.hasId && duplicateCheck.passed;
 
     // Generate explanation
-    const explanation = generateExplanation(checks, trustScore);
+    const explanation = verified 
+      ? `GENUINE CERTIFICATE: ${idCheck.idType || "Personal ID"} verified. ${idCheck.reason}. ${duplicateCheck.details}`
+      : `Verification issue: ${duplicateCheck.details}`;
 
     // Build final result
     const verificationResult: VerificationResult = {
@@ -504,7 +403,7 @@ serve(async (req) => {
       extractedIssuer: issuer.trim(),
       extractedDate: null,
       warnings: checks.filter(c => !c.passed).map(c => c.details),
-      hasVerificationCode: codeFormatCheck.passed
+      hasVerificationCode: true
     };
 
     console.log("Final verification result:", verificationResult);
