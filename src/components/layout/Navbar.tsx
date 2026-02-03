@@ -14,21 +14,23 @@ import {
 
 const publicLinks = [
   { href: "/", label: "Home" },
-  { href: "/support", label: "Support" },
-  { href: "/careers", label: "Careers" },
+  { href: "/how-it-works", label: "How It Works" },
+  { href: "/demo", label: "Demo" },
+  { href: "/about", label: "About" },
+  { href: "/support", label: "Contact" },
 ];
 
 const candidateLinks = [
   { href: "/", label: "Home" },
   { href: "/student", label: "Dashboard" },
   { href: "/verify", label: "Verify Certificate" },
-  { href: "/support", label: "Support" },
+  { href: "/how-it-works", label: "How It Works" },
 ];
 
 const recruiterLinks = [
   { href: "/", label: "Home" },
   { href: "/recruiter", label: "Dashboard" },
-  { href: "/support", label: "Support" },
+  { href: "/how-it-works", label: "How It Works" },
 ];
 
 export function Navbar() {
