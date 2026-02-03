@@ -3,9 +3,9 @@ import { GraduationCap, Heart } from "lucide-react";
 
 const footerLinks = {
   product: [
+    { href: "/how-it-works", label: "How It Works" },
+    { href: "/demo", label: "Demo Dashboard" },
     { href: "/verify", label: "Verify Certificate" },
-    { href: "/student", label: "For Students" },
-    { href: "/recruiter", label: "For Recruiters" },
   ],
   company: [
     { href: "/about", label: "About Us" },
@@ -14,7 +14,7 @@ const footerLinks = {
   ],
   legal: [
     { href: "/privacy", label: "Privacy Policy" },
-    { href: "/terms", label: "Terms of Service" },
+    { href: "/terms", label: "Terms of Use" },
   ],
 };
 
@@ -33,8 +33,11 @@ export function Footer() {
                 EduProof
               </span>
             </Link>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Your verified achievements, your true potential. We make certificate verification simple, fast, and trustworthy.
+            <p className="text-muted-foreground text-sm leading-relaxed mb-3">
+              Verified Credential Trust System. Building trust in credential-based hiring with secure verification and risk signals.
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              FinTech-grade verification for education
             </p>
           </div>
 
