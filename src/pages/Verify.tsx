@@ -86,8 +86,8 @@ const Verify = () => {
   };
 
   const handleVerify = async () => {
-    if (!file || !title.trim() || !issuer.trim()) {
-      toast.error("Please fill in all required fields");
+    if (!file || !title.trim() || !issuer.trim() || !certificateCode.trim()) {
+      toast.error("Please fill in all required fields including certificate code");
       return;
     }
 
@@ -316,17 +316,17 @@ const Verify = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="certificateCode">
-                  Certificate Code / ID <span className="text-muted-foreground text-xs">(optional - improves verification)</span>
+                  Certificate Code * <span className="text-muted-foreground text-xs">({certificateCode.length}/{MAX_CODE_LENGTH})</span>
                 </Label>
                 <Input
                   id="certificateCode"
-                  placeholder="e.g., AWS-12345-XYZ, CERT-2024-001"
+                  placeholder="e.g., EDU-2025-001"
                   value={certificateCode}
                   onChange={(e) => setCertificateCode(e.target.value.slice(0, MAX_CODE_LENGTH))}
                   maxLength={MAX_CODE_LENGTH}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Enter the unique ID, credential number, or verification code from your certificate
+                  Enter your certificate verification code (Valid codes: EDU-2025-001, EDU-2025-002, EDU-2025-003)
                 </p>
               </div>
             </div>
@@ -351,7 +351,7 @@ const Verify = () => {
               size="xl"
               className="w-full mt-8"
               onClick={handleVerify}
-              disabled={!file || !title || !issuer || isVerifying}
+              disabled={!file || !title || !issuer || !certificateCode || isVerifying}
             >
               {isVerifying ? (
                 <>
