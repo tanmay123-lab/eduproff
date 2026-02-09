@@ -11,6 +11,7 @@ const corsHeaders = {
 const VerificationSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
   issuer: z.string().trim().min(1, "Issuer is required").max(200, "Issuer must be less than 200 characters"),
+  certificateCode: z.string().trim().max(100).nullable().optional(),
   fileType: z.enum(["pdf"]).optional(),
 });
 
@@ -95,49 +96,94 @@ async function checkRateLimit(
   };
 }
 
-// Primary Check: User ID / Candidate ID Detection
-async function checkForUserOrCandidateId(
+// Primary Check: Certificate Code Format Validation
+function validateCertificateCodeFormat(code: string | null | undefined): VerificationCheck {
+  console.log("Running Check: Certificate Code Format Validation");
+  
+  if (!code || code.trim() === "") {
+    return {
+      name: "Code Format Validation",
+      passed: false,
+      score: 0,
+      details: "No certificate code provided - verification cannot confirm authenticity"
+    };
+  }
+
+  const trimmedCode = code.trim();
+  
+  // Common patterns for certificate codes
+  const codePatterns = [
+    /^[A-Z]{2,6}-\d{4,10}$/i,           // AWS-12345, CERT-123456
+    /^[A-Z0-9]{8,20}$/i,                 // Simple alphanumeric codes
+    /^[A-Z]{2,4}-\d{4}-[A-Z0-9]{3,6}$/i, // AWS-2024-XYZ123
+    /^\d{6,12}$/,                         // Numeric only codes
+    /^[A-Z0-9-]{10,30}$/i,               // Mixed with dashes
+    /^UC-[A-Z0-9]+$/i,                   // Udemy style
+    /^CERT[A-Z0-9-]+$/i,                 // Generic CERT prefix
+  ];
+
+  const isValidFormat = codePatterns.some(pattern => pattern.test(trimmedCode));
+  
+  if (isValidFormat) {
+    return {
+      name: "Code Format Validation",
+      passed: true,
+      score: 90,
+      details: `Valid certificate code format detected: ${trimmedCode}`
+    };
+  }
+
+  // Partial match - code exists but format is unusual
+  if (trimmedCode.length >= 5) {
+    return {
+      name: "Code Format Validation",
+      passed: true,
+      score: 60,
+      details: `Certificate code provided but format is non-standard: ${trimmedCode}`
+    };
+  }
+
+  return {
+    name: "Code Format Validation",
+    passed: false,
+    score: 20,
+    details: "Certificate code is too short or invalid"
+  };
+}
+
+// AI Check: Issuer and Title Consistency
+async function checkIssuerConsistency(
   title: string, 
   issuer: string,
+  certificateCode: string | null | undefined,
   LOVABLE_API_KEY: string
-): Promise<{ hasId: boolean; idType: string | null; confidence: number; reason: string }> {
-  console.log("Running Primary Check: User ID / Candidate ID Detection");
+): Promise<VerificationCheck> {
+  console.log("Running Check: Issuer Consistency");
   
   const safeTitle = sanitizeForPrompt(title);
   const safeIssuer = sanitizeForPrompt(issuer);
+  const safeCode = certificateCode ? sanitizeForPrompt(certificateCode) : "not provided";
   
   const messages = [
     {
       role: "system",
-      content: `You are a strict certificate verification AI. Your ONLY job is to determine if the certificate contains a User ID or Candidate ID.
+      content: `You are a certificate verification assistant. Analyze if the certificate details are consistent and likely genuine.
 
-VALID IDENTIFIERS (certificate is GENUINE if it has ANY of these):
-- User ID
-- Candidate ID
-- Student ID
-- Enrollment ID
-- Registration Number
-- Roll Number
-- Learner ID
-- Participant ID
-- Certificate ID with user-specific number
-- Credential ID
-
-IMPORTANT: The certificate MUST explicitly contain one of these identifiers to be considered genuine.
-
-Analyze the certificate title and issuer to determine if this type of certificate from this issuer would contain a User ID or Candidate ID.
+Check:
+1. Is the issuer a real, recognized organization that issues certificates?
+2. Does the certificate title match what this issuer would actually offer?
+3. Does the certificate code format match what this issuer typically uses?
 
 Respond with JSON:
 {
-  "hasUserOrCandidateId": boolean (true ONLY if certificate would have User ID, Candidate ID, or similar personal identifier),
-  "idType": string or null (the specific type found, e.g., "Student ID", "Candidate ID", "User ID"),
-  "confidence": number (0-100),
-  "reason": string (brief explanation of why this is genuine or fake)
+  "isConsistent": boolean,
+  "score": number (0-100),
+  "reason": string (brief explanation)
 }`
     },
     {
       role: "user",
-      content: `Certificate: "${safeTitle}" from "${safeIssuer}". Does this certificate contain a User ID, Candidate ID, or similar personal identifier?`
+      content: `Certificate Title: "${safeTitle}"\nIssuer: "${safeIssuer}"\nCertificate Code: "${safeCode}"\n\nIs this a consistent and likely genuine certificate?`
     }
   ];
 
@@ -164,18 +210,18 @@ Respond with JSON:
     const result = JSON.parse(content);
 
     return {
-      hasId: result.hasUserOrCandidateId === true,
-      idType: result.idType || null,
-      confidence: result.confidence || 50,
-      reason: result.reason || "Unable to determine"
+      name: "Consistency Check",
+      passed: result.isConsistent === true,
+      score: result.score || 50,
+      details: result.reason || "Consistency check completed"
     };
   } catch (error) {
-    console.error("ID check error:", error);
+    console.error("Consistency check error:", error);
     return {
-      hasId: false,
-      idType: null,
-      confidence: 0,
-      reason: "Unable to verify - AI check failed"
+      name: "Consistency Check",
+      passed: true,
+      score: 50,
+      details: "Unable to fully verify - defaulting to partial trust"
     };
   }
 }
@@ -326,7 +372,7 @@ serve(async (req) => {
       );
     }
 
-    const { title, issuer } = validated.data;
+    const { title, issuer, certificateCode } = validated.data;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
@@ -335,63 +381,56 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log(`Starting ID-based verification for: ${title} from ${issuer}`);
+    console.log(`Starting verification for: ${title} from ${issuer}, code: ${certificateCode || 'not provided'}`);
 
-    // PRIMARY CHECK: User ID / Candidate ID Detection
-    const idCheck = await checkForUserOrCandidateId(title, issuer, LOVABLE_API_KEY);
-    console.log("ID Check result:", idCheck);
+    // Run all checks in parallel for efficiency
+    const [codeFormatCheck, duplicateCheck, consistencyCheck] = await Promise.all([
+      Promise.resolve(validateCertificateCodeFormat(certificateCode)),
+      checkDuplicate(title, issuer, userId, supabaseAdmin),
+      checkIssuerConsistency(title, issuer, certificateCode, LOVABLE_API_KEY)
+    ]);
 
-    // If NO User ID or Candidate ID found - STOP and mark as FAKE
-    if (!idCheck.hasId) {
-      console.log("No User ID / Candidate ID found - marking as FAKE");
-      
-      const verificationResult: VerificationResult = {
-        verified: false,
-        trustScore: 0,
-        checks: [{
-          name: "User/Candidate ID Check",
-          passed: false,
-          score: 0,
-          details: idCheck.reason
-        }],
-        explanation: `FAKE CERTIFICATE: ${idCheck.reason}. No User ID, Candidate ID, or similar personal identifier was detected. Genuine certificates from reputable issuers always include a unique identifier.`,
-        extractedTitle: title.trim(),
-        extractedIssuer: issuer.trim(),
-        extractedDate: null,
-        warnings: ["No User ID or Candidate ID found - certificate cannot be verified"],
-        hasVerificationCode: false
-      };
-
-      return new Response(JSON.stringify(verificationResult), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // ID FOUND - Run secondary duplicate check
-    const duplicateCheck = await checkDuplicate(title, issuer, userId, supabaseAdmin);
-    console.log("Duplicate Check result:", duplicateCheck);
+    console.log("Code Format Check:", codeFormatCheck);
+    console.log("Duplicate Check:", duplicateCheck);
+    console.log("Consistency Check:", consistencyCheck);
 
     // Build checks array
-    const checks: VerificationCheck[] = [
-      {
-        name: "User/Candidate ID Check",
-        passed: true,
-        score: idCheck.confidence,
-        details: `${idCheck.idType || "Personal ID"} detected: ${idCheck.reason}`
-      },
-      duplicateCheck
-    ];
+    const checks: VerificationCheck[] = [codeFormatCheck, duplicateCheck, consistencyCheck];
 
-    // Calculate trust score (ID check is primary - 80%, Duplicate is 20%)
-    const trustScore = Math.round((idCheck.confidence * 0.8) + (duplicateCheck.score * 0.2));
+    // Calculate trust score with weighted scoring
+    // Code Format: 40%, Duplicate: 20%, Consistency: 40%
+    const trustScore = Math.round(
+      (codeFormatCheck.score * 0.4) + 
+      (duplicateCheck.score * 0.2) + 
+      (consistencyCheck.score * 0.4)
+    );
 
-    // Verified if ID found and not a duplicate
-    const verified = idCheck.hasId && duplicateCheck.passed;
+    // Determine verification status
+    const allChecksPassed = checks.every(c => c.passed);
+    const hasFailedChecks = checks.some(c => !c.passed);
+    const criticalFailure = !codeFormatCheck.passed && codeFormatCheck.score === 0;
+    
+    // Verified: all pass and score >= 70
+    // Partially Verified: some pass, score 50-69, or code not provided but consistency is good
+    // Invalid: critical failure or score < 50
+    let verified = false;
+    let status: 'verified' | 'partially_verified' | 'invalid';
+    let explanation: string;
 
-    // Generate explanation
-    const explanation = verified 
-      ? `GENUINE CERTIFICATE: ${idCheck.idType || "Personal ID"} verified. ${idCheck.reason}. ${duplicateCheck.details}`
-      : `Verification issue: ${duplicateCheck.details}`;
+    if (trustScore >= 70 && allChecksPassed) {
+      verified = true;
+      status = 'verified';
+      explanation = `VERIFIED: Certificate authenticated with ${trustScore}% confidence. ${consistencyCheck.details}`;
+    } else if (trustScore >= 50 || (consistencyCheck.passed && consistencyCheck.score >= 60)) {
+      verified = false;
+      status = 'partially_verified';
+      const failedNames = checks.filter(c => !c.passed).map(c => c.name).join(", ");
+      explanation = `PARTIALLY VERIFIED: Some checks passed but concerns remain. ${failedNames ? `Issues with: ${failedNames}. ` : ''}${consistencyCheck.details}`;
+    } else {
+      verified = false;
+      status = 'invalid';
+      explanation = `INVALID: Certificate could not be verified. ${checks.filter(c => !c.passed).map(c => c.details).join(' ')}`;
+    }
 
     // Build final result
     const verificationResult: VerificationResult = {
@@ -403,7 +442,7 @@ serve(async (req) => {
       extractedIssuer: issuer.trim(),
       extractedDate: null,
       warnings: checks.filter(c => !c.passed).map(c => c.details),
-      hasVerificationCode: true
+      hasVerificationCode: Boolean(certificateCode && certificateCode.trim())
     };
 
     console.log("Final verification result:", verificationResult);

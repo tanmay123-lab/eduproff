@@ -32,12 +32,14 @@ const Verify = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [title, setTitle] = useState("");
+  const [issuer, setIssuer] = useState("");
+  const [certificateCode, setCertificateCode] = useState("");
   
   // Validation constants
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   const MAX_TITLE_LENGTH = 200;
   const MAX_ISSUER_LENGTH = 200;
-  const [issuer, setIssuer] = useState("");
+  const MAX_CODE_LENGTH = 100;
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -120,7 +122,7 @@ const Verify = () => {
       const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
         "verify-certificate",
         {
-          body: { title, issuer, fileType: "pdf" },
+          body: { title, issuer, certificateCode: certificateCode.trim() || null, fileType: "pdf" },
         }
       );
 
@@ -162,21 +164,33 @@ const Verify = () => {
           .eq('id', certificate.id);
       }
 
-      // Update status based on AI verification (using trustScore instead of confidence)
-      const isVerified = verificationResult.verified && verificationResult.trustScore >= 70;
+      // Update status based on AI verification
+      // Verified: trustScore >= 70 and verified flag
+      // Partially Verified: trustScore 50-69 or some checks passed
+      // Invalid: trustScore < 50
+      const isFullyVerified = verificationResult.verified && verificationResult.trustScore >= 70;
+      const isPartiallyVerified = !isFullyVerified && verificationResult.trustScore >= 50;
       
       // Prepare state for result pages
       const resultState = {
         trustScore: verificationResult.trustScore,
         checks: verificationResult.checks,
-        explanation: verificationResult.explanation
+        explanation: verificationResult.explanation,
+        status: isFullyVerified ? 'verified' : isPartiallyVerified ? 'partially_verified' : 'invalid'
       };
       
-      if (isVerified) {
+      if (isFullyVerified) {
         await updateCertificateStatus(
           certificate.id, 
           "verified", 
           verificationResult.explanation || "Certificate verified successfully"
+        );
+        navigate("/upload-success", { state: resultState });
+      } else if (isPartiallyVerified) {
+        await updateCertificateStatus(
+          certificate.id, 
+          "pending", 
+          verificationResult.explanation || "Partially verified - manual review may be needed"
         );
         navigate("/upload-success", { state: resultState });
       } else {
@@ -299,6 +313,21 @@ const Verify = () => {
                   onChange={(e) => setIssuer(e.target.value.slice(0, MAX_ISSUER_LENGTH))}
                   maxLength={MAX_ISSUER_LENGTH}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="certificateCode">
+                  Certificate Code / ID <span className="text-muted-foreground text-xs">(optional - improves verification)</span>
+                </Label>
+                <Input
+                  id="certificateCode"
+                  placeholder="e.g., AWS-12345-XYZ, CERT-2024-001"
+                  value={certificateCode}
+                  onChange={(e) => setCertificateCode(e.target.value.slice(0, MAX_CODE_LENGTH))}
+                  maxLength={MAX_CODE_LENGTH}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter the unique ID, credential number, or verification code from your certificate
+                </p>
               </div>
             </div>
 
