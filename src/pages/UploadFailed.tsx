@@ -22,25 +22,16 @@ const UploadFailed = () => {
   const location = useLocation();
   const state = location.state as LocationState | null;
   
-  const trustScore = state?.trustScore ?? 35;
+  const trustScore = state?.trustScore ?? 20;
   const checks = state?.checks ?? [
-    { name: "Code Format Validation", passed: false, score: 20, details: "Could not verify code format for this issuer" },
-    { name: "Duplicate Check", passed: true, score: 100, details: "No duplicate certificates found" },
-    { name: "Consistency Checks", passed: false, score: 40, details: "Issuer not recognized or title doesn't match" },
+    { name: "Certificate Code Validation", passed: false, score: 20, details: "Certificate code not found in registry" },
   ];
-  const explanation = state?.explanation ?? "Some verification checks failed. Please review and try again.";
+  const explanation = state?.explanation ?? "Certificate code could not be verified. Please check the code and try again.";
 
   const getCheckIcon = (name: string) => {
-    switch (name) {
-      case "Code Format Validation":
-        return Shield;
-      case "Duplicate Check":
-        return Search;
-      case "Consistency Checks":
-        return FileCheck;
-      default:
-        return AlertTriangle;
-    }
+    if (name.includes("Code") || name.includes("Validation")) return Shield;
+    if (name.includes("Duplicate")) return Search;
+    return FileCheck;
   };
 
   const failedChecks = checks.filter(c => !c.passed);
