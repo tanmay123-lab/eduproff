@@ -16,6 +16,7 @@ interface LocationState {
   trustScore?: number;
   checks?: VerificationCheck[];
   explanation?: string;
+  status?: 'verified' | 'partially_verified' | 'invalid';
 }
 
 const UploadSuccess = () => {
@@ -23,24 +24,20 @@ const UploadSuccess = () => {
   const state = location.state as LocationState | null;
   
   const trustScore = state?.trustScore ?? 85;
+  const status = state?.status ?? 'verified';
+  const isPartiallyVerified = status === 'partially_verified';
   const checks = state?.checks ?? [
     { name: "Code Format Validation", passed: true, score: 90, details: "Verification code format recognized" },
     { name: "Duplicate Check", passed: true, score: 100, details: "No duplicate certificates found" },
-    { name: "Consistency Checks", passed: true, score: 85, details: "Title and issuer are consistent" },
+    { name: "Consistency Check", passed: true, score: 85, details: "Title and issuer are consistent" },
   ];
   const explanation = state?.explanation ?? "All verification checks passed successfully.";
 
   const getCheckIcon = (name: string) => {
-    switch (name) {
-      case "Code Format Validation":
-        return Shield;
-      case "Duplicate Check":
-        return Search;
-      case "Consistency Checks":
-        return FileCheck;
-      default:
-        return CheckCheck;
-    }
+    if (name.includes("Code") || name.includes("Format")) return Shield;
+    if (name.includes("Duplicate")) return Search;
+    if (name.includes("Consistency")) return FileCheck;
+    return CheckCheck;
   };
 
   return (
@@ -48,33 +45,62 @@ const UploadSuccess = () => {
       <section className="min-h-[80vh] flex items-center py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-xl mx-auto text-center">
-            {/* Success Animation */}
+            {/* Success/Partial Animation */}
             <div className="relative mb-8">
-              <div className="w-24 h-24 rounded-full gradient-success flex items-center justify-center mx-auto shadow-glow-success animate-scale-in">
-                <CheckCircle className="w-12 h-12 text-success-foreground" />
+              <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto shadow-glow-success animate-scale-in ${
+                isPartiallyVerified ? 'bg-warning/20' : 'gradient-success'
+              }`}>
+                {isPartiallyVerified ? (
+                  <Shield className="w-12 h-12 text-warning" />
+                ) : (
+                  <CheckCircle className="w-12 h-12 text-success-foreground" />
+                )}
               </div>
               {/* Decorative rings */}
-              <div className="absolute inset-0 w-32 h-32 rounded-full border-4 border-success/20 mx-auto animate-ping" style={{ animationDuration: "2s" }} />
+              <div className={`absolute inset-0 w-32 h-32 rounded-full border-4 mx-auto animate-ping ${
+                isPartiallyVerified ? 'border-warning/20' : 'border-success/20'
+              }`} style={{ animationDuration: "2s" }} />
             </div>
 
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4 animate-fade-in">
-              Congrats! 🎉
+              {isPartiallyVerified ? 'Almost There! 🔍' : 'Congrats! 🎉'}
             </h1>
-            <p className="text-xl text-success font-medium mb-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-              Your certificate is verified ✅
+            <p className={`text-xl font-medium mb-2 animate-fade-in ${
+              isPartiallyVerified ? 'text-warning' : 'text-success'
+            }`} style={{ animationDelay: "0.1s" }}>
+              {isPartiallyVerified 
+                ? 'Your certificate is partially verified ⚠️' 
+                : 'Your certificate is verified ✅'}
             </p>
             <p className="text-muted-foreground mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              Your achievement has been authenticated and added to your profile.
+              {isPartiallyVerified 
+                ? 'Some verification checks passed. Adding a certificate code can improve your trust score.'
+                : 'Your achievement has been authenticated and added to your profile.'}
             </p>
 
             {/* Trust Score Card */}
-            <Card className="mb-6 shadow-medium border-success/20 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+            <Card className={`mb-6 shadow-medium animate-fade-in-up ${
+              isPartiallyVerified ? 'border-warning/20' : 'border-success/20'
+            }`} style={{ animationDelay: "0.3s" }}>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <span className="font-semibold text-foreground">Trust Score</span>
-                  <span className="text-2xl font-bold text-success">{trustScore}%</span>
+                  <span className={`text-2xl font-bold ${
+                    trustScore >= 70 ? 'text-success' : trustScore >= 50 ? 'text-warning' : 'text-destructive'
+                  }`}>{trustScore}%</span>
                 </div>
-                <Progress value={trustScore} className="h-3 mb-4" />
+                <Progress value={trustScore} className={`h-3 mb-4 ${
+                  isPartiallyVerified ? '[&>div]:bg-warning' : ''
+                }`} />
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                    isPartiallyVerified 
+                      ? 'bg-warning/10 text-warning' 
+                      : 'bg-success/10 text-success'
+                  }`}>
+                    {isPartiallyVerified ? 'PARTIALLY VERIFIED' : 'VERIFIED'}
+                  </span>
+                </div>
                 <p className="text-sm text-muted-foreground text-left">{explanation}</p>
               </CardContent>
             </Card>
