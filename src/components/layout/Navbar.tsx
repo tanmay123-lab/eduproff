@@ -33,6 +33,13 @@ const recruiterLinks = [
   { href: "/how-it-works", label: "How It Works" },
 ];
 
+const institutionLinks = [
+  { href: "/", label: "Home" },
+  { href: "/institution", label: "Dashboard" },
+  { href: "/institution/issue", label: "Issue Certificate" },
+  { href: "/institution/certificates", label: "Issued Certs" },
+];
+
 export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -41,7 +48,7 @@ export function Navbar() {
 
   // Determine which nav links to show based on auth state
   const navLinks = user 
-    ? (role === "recruiter" ? recruiterLinks : candidateLinks)
+    ? (role === "recruiter" ? recruiterLinks : role === "institution" ? institutionLinks : candidateLinks)
     : publicLinks;
 
   const handleSignOut = async () => {
@@ -94,7 +101,7 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link to={role === "recruiter" ? "/recruiter" : "/student"} className="cursor-pointer">
+                    <Link to={role === "recruiter" ? "/recruiter" : role === "institution" ? "/institution" : "/student"} className="cursor-pointer">
                       <User className="w-4 h-4 mr-2" />
                       Dashboard
                     </Link>
