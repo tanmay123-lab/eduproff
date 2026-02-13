@@ -6,8 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Valid certificate codes stored in the backend
-const VALID_CERTIFICATE_CODES = [
+// Default valid codes (fallback if none provided by client)
+const DEFAULT_VALID_CODES = [
   "EDU-2025-001",
   "EDU-2025-002", 
   "EDU-2025-003",
@@ -76,7 +76,7 @@ serve(async (req) => {
       );
     }
 
-    const { title, issuer, certificateCode } = body;
+    const { title, issuer, certificateCode, validCodes } = body;
 
     // Validate required fields
     if (!title || !issuer) {
@@ -88,9 +88,10 @@ serve(async (req) => {
 
     console.log(`Verifying certificate: ${title} from ${issuer}, code: ${certificateCode || 'not provided'}`);
 
-    // Simple verification logic: check if code matches valid codes
+    // Use validCodes from institution context if provided, otherwise fall back to defaults
+    const registryCodes = (Array.isArray(validCodes) && validCodes.length > 0) ? validCodes.map((c: string) => c.toUpperCase()) : DEFAULT_VALID_CODES;
     const normalizedCode = certificateCode?.trim().toUpperCase() || '';
-    const isValidCode = VALID_CERTIFICATE_CODES.includes(normalizedCode);
+    const isValidCode = registryCodes.includes(normalizedCode);
 
     let verified: boolean;
     let trustScore: number;

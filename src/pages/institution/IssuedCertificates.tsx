@@ -17,7 +17,7 @@ const IssuedCertificates = () => {
 
   const filtered = issuedCertificates.filter(c => {
     const q = search.toLowerCase();
-    return c.studentName.toLowerCase().includes(q) || c.certificateCode.toLowerCase().includes(q);
+    return c.studentName.toLowerCase().includes(q) || c.certificateId.toLowerCase().includes(q);
   });
 
   return (
@@ -49,7 +49,7 @@ const IssuedCertificates = () => {
               <TableHead><span className="flex items-center gap-1"><User className="w-3.5 h-3.5" /> Student Name</span></TableHead>
               <TableHead><span className="flex items-center gap-1"><FileText className="w-3.5 h-3.5" /> Course</span></TableHead>
               <TableHead><span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Issue Date</span></TableHead>
-              <TableHead><span className="flex items-center gap-1"><Hash className="w-3.5 h-3.5" /> Certificate Code</span></TableHead>
+              <TableHead><span className="flex items-center gap-1"><Hash className="w-3.5 h-3.5" /> Certificate ID</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -61,13 +61,13 @@ const IssuedCertificates = () => {
               </TableRow>
             ) : (
               filtered.map(cert => (
-                <TableRow key={cert.id}>
+                <TableRow key={cert.certificateId}>
                   <TableCell className="font-medium">{cert.studentName}</TableCell>
                   <TableCell>{cert.courseName}</TableCell>
                   <TableCell>{new Date(cert.issueDate).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <code className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-mono">
-                      {cert.certificateCode}
+                      {cert.certificateId}
                     </code>
                   </TableCell>
                 </TableRow>
