@@ -9,8 +9,8 @@ const corsHeaders = {
 
 // Input validation schema
 const RoleSchema = z.object({
-  requestedRole: z.enum(["candidate", "recruiter"], {
-    errorMap: () => ({ message: "Invalid role. Must be 'candidate' or 'recruiter'" }),
+  requestedRole: z.enum(["candidate", "recruiter", "institution"], {
+    errorMap: () => ({ message: "Invalid role. Must be 'candidate', 'recruiter', or 'institution'" }),
   }),
 });
 
