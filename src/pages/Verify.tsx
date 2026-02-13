@@ -7,6 +7,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Upload, Sparkles, FileCheck, AlertCircle, Loader2 } from "lucide-react";
 import { useCertificates } from "@/hooks/useCertificates";
 import { useAuth } from "@/hooks/useAuth";
+import { useInstitution } from "@/contexts/InstitutionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -27,7 +28,7 @@ const Verify = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addCertificate, updateCertificateStatus } = useCertificates();
-  
+  const { getValidCodes } = useInstitution();
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -122,7 +123,7 @@ const Verify = () => {
       const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
         "verify-certificate",
         {
-          body: { title, issuer, certificateCode: certificateCode.trim() || null, fileType: "pdf" },
+          body: { title, issuer, certificateCode: certificateCode.trim() || null, fileType: "pdf", validCodes: getValidCodes() },
         }
       );
 
@@ -316,7 +317,7 @@ const Verify = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="certificateCode">
-                  Certificate Code * <span className="text-muted-foreground text-xs">({certificateCode.length}/{MAX_CODE_LENGTH})</span>
+                  Certificate ID * <span className="text-muted-foreground text-xs">({certificateCode.length}/{MAX_CODE_LENGTH})</span>
                 </Label>
                 <Input
                   id="certificateCode"
@@ -326,7 +327,7 @@ const Verify = () => {
                   maxLength={MAX_CODE_LENGTH}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Enter your certificate verification code (Valid codes: EDU-2025-001, EDU-2025-002, EDU-2025-003)
+                  Enter the Certificate ID issued by your institution
                 </p>
               </div>
             </div>
