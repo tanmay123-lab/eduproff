@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
-import { Upload, FileCheck, FileText, Award, Loader2, Mail, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, FileCheck, FileText, Award, Loader2, Mail, CheckCircle, AlertCircle, Hash } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCertificates } from "@/hooks/useCertificates";
 import { CertificateCard } from "@/components/student/CertificateCard";
@@ -12,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 const Student = () => {
   const { user } = useAuth();
   const { certificates, loading, deleteCertificate } = useCertificates();
+  const [myCertificateId, setMyCertificateId] = useState("");
   const userName = user?.email?.split("@")[0] || "Achiever";
   const isEmailVerified = !!user?.email_confirmed_at;
 
@@ -164,6 +168,37 @@ const Student = () => {
                 Create a professional CV from your achievements
               </p>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* My Certificate ID Section */}
+      <section className="py-8">
+        <div className="container mx-auto px-4">
+          <div className="max-w-xl bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+            <h3 className="font-display text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
+              <Hash className="w-5 h-5 text-primary" />
+              My Certificate ID
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Enter the Certificate ID provided by your institution, then verify it.
+            </p>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <Label htmlFor="myCertificateId" className="sr-only">Certificate ID</Label>
+                <Input
+                  id="myCertificateId"
+                  value={myCertificateId}
+                  onChange={e => setMyCertificateId(e.target.value)}
+                  placeholder="e.g. EDU-2025-001"
+                />
+              </div>
+              <Button variant="hero" asChild>
+                <Link to={`/verify`}>
+                  Verify
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>

@@ -29,7 +29,7 @@ const VerificationLogs = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Certificate Code</TableHead>
+              <TableHead>Certificate ID</TableHead>
               <TableHead>Verified By</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>

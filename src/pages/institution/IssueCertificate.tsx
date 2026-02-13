@@ -7,22 +7,32 @@ import { useToast } from "@/hooks/use-toast";
 import { FilePlus, CheckCircle, Copy } from "lucide-react";
 
 const IssueCertificate = () => {
+  const [certificateId, setCertificateId] = useState("");
   const [studentName, setStudentName] = useState("");
   const [courseName, setCourseName] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [issuedCode, setIssuedCode] = useState<string | null>(null);
-  const { issueCertificate } = useInstitution();
+  const { issueCertificate, isCertificateIdTaken } = useInstitution();
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentName.trim() || !courseName.trim() || !issueDate) {
+    if (!certificateId.trim() || !studentName.trim() || !courseName.trim() || !issueDate) {
       toast({ title: "All fields are required", variant: "destructive" });
       return;
     }
-    const cert = issueCertificate(studentName.trim(), courseName.trim(), issueDate);
-    setIssuedCode(cert.certificateCode);
-    toast({ title: "Certificate Issued! 🎉", description: `Code: ${cert.certificateCode}` });
+    if (isCertificateIdTaken(certificateId)) {
+      toast({ title: "Certificate ID already exists", description: "Please use a unique Certificate ID.", variant: "destructive" });
+      return;
+    }
+    const cert = issueCertificate(certificateId.trim(), studentName.trim(), courseName.trim(), issueDate);
+    if (!cert) {
+      toast({ title: "Failed to issue certificate", variant: "destructive" });
+      return;
+    }
+    setIssuedCode(cert.certificateId);
+    toast({ title: "Certificate Issued! 🎉", description: `ID: ${cert.certificateId}` });
+    setCertificateId("");
     setStudentName("");
     setCourseName("");
     setIssueDate("");
@@ -31,7 +41,7 @@ const IssueCertificate = () => {
   const copyCode = () => {
     if (issuedCode) {
       navigator.clipboard.writeText(issuedCode);
-      toast({ title: "Copied!", description: "Certificate code copied to clipboard." });
+      toast({ title: "Copied!", description: "Certificate ID copied to clipboard." });
     }
   };
 
@@ -43,7 +53,7 @@ const IssueCertificate = () => {
           Issue Certificate
         </h1>
         <p className="text-muted-foreground">
-          Fill in the details to issue a new certificate with an auto-generated code.
+          Fill in the details to issue a new certificate with a unique Certificate ID.
         </p>
       </div>
 
@@ -65,6 +75,11 @@ const IssueCertificate = () => {
       )}
 
       <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 space-y-5">
+        <div>
+          <Label htmlFor="certificateId">Certificate ID / Issue ID *</Label>
+          <Input id="certificateId" value={certificateId} onChange={e => setCertificateId(e.target.value)} placeholder="e.g. EDU-2025-004" className="mt-1.5" />
+          <p className="text-xs text-muted-foreground mt-1">Must be unique. This ID will be used for verification.</p>
+        </div>
         <div>
           <Label htmlFor="studentName">Student Name *</Label>
           <Input id="studentName" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="e.g. Alice Johnson" className="mt-1.5" />
