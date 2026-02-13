@@ -3,14 +3,14 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-type UserRole = "candidate" | "recruiter" | null;
+type UserRole = "candidate" | "recruiter" | "institution" | null;
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   role: UserRole;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, role: "candidate" | "recruiter") => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, role: "candidate" | "recruiter" | "institution") => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, selectedRole: "candidate" | "recruiter") => {
+  const signUp = async (email: string, password: string, fullName: string, selectedRole: "candidate" | "recruiter" | "institution") => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       

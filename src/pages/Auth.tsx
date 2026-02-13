@@ -6,7 +6,7 @@ import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { GraduationCap, Users, Mail, Lock, User, Sparkles, ArrowRight, ArrowLeft } from "lucide-react";
+import { GraduationCap, Users, Mail, Lock, User, Sparkles, ArrowRight, ArrowLeft, Building2 } from "lucide-react";
 import { z } from "zod";
 
 const authSchema = z.object({
@@ -16,7 +16,7 @@ const authSchema = z.object({
 });
 
 type AuthMode = "login" | "signup" | "forgot-password";
-type SelectedRole = "candidate" | "recruiter" | null;
+type SelectedRole = "candidate" | "recruiter" | "institution" | null;
 
 const Auth = () => {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -38,6 +38,8 @@ const Auth = () => {
         navigate("/student");
       } else if (role === "recruiter") {
         navigate("/recruiter");
+      } else if (role === "institution") {
+        navigate("/institution");
       }
     }
   }, [user, role, navigate]);
@@ -157,37 +159,53 @@ const Auth = () => {
   };
 
   const RoleSelector = () => (
-    <div className="grid grid-cols-2 gap-4 mb-6">
+    <div className="grid grid-cols-3 gap-3 mb-6">
       <button
         type="button"
         onClick={() => setSelectedRole("candidate")}
-        className={`p-6 rounded-xl border-2 transition-all text-left ${
+        className={`p-5 rounded-xl border-2 transition-all text-left ${
           selectedRole === "candidate"
             ? "border-primary bg-primary/5 shadow-glow-primary"
             : "border-border hover:border-primary/50 hover:bg-secondary/50"
         }`}
       >
-        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
-          <GraduationCap className="w-6 h-6 text-primary" />
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+          <GraduationCap className="w-5 h-5 text-primary" />
         </div>
-        <h3 className="font-display font-semibold text-foreground mb-1">Candidate</h3>
-        <p className="text-sm text-muted-foreground">Upload & verify your certificates</p>
+        <h3 className="font-display font-semibold text-foreground mb-0.5 text-sm">Candidate</h3>
+        <p className="text-xs text-muted-foreground">Verify certificates</p>
       </button>
       
       <button
         type="button"
         onClick={() => setSelectedRole("recruiter")}
-        className={`p-6 rounded-xl border-2 transition-all text-left ${
+        className={`p-5 rounded-xl border-2 transition-all text-left ${
           selectedRole === "recruiter"
             ? "border-accent bg-accent/5 shadow-glow-accent"
             : "border-border hover:border-accent/50 hover:bg-secondary/50"
         }`}
       >
-        <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-3">
-          <Users className="w-6 h-6 text-accent-foreground" />
+        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-2">
+          <Users className="w-5 h-5 text-accent-foreground" />
         </div>
-        <h3 className="font-display font-semibold text-foreground mb-1">Recruiter</h3>
-        <p className="text-sm text-muted-foreground">Find verified talent quickly</p>
+        <h3 className="font-display font-semibold text-foreground mb-0.5 text-sm">Recruiter</h3>
+        <p className="text-xs text-muted-foreground">Find talent</p>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setSelectedRole("institution")}
+        className={`p-5 rounded-xl border-2 transition-all text-left ${
+          selectedRole === "institution"
+            ? "border-primary bg-primary/5 shadow-glow-primary"
+            : "border-border hover:border-primary/50 hover:bg-secondary/50"
+        }`}
+      >
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+          <Building2 className="w-5 h-5 text-primary" />
+        </div>
+        <h3 className="font-display font-semibold text-foreground mb-0.5 text-sm">Institution</h3>
+        <p className="text-xs text-muted-foreground">Issue certificates</p>
       </button>
     </div>
   );

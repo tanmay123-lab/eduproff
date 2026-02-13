@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ("candidate" | "recruiter")[];
+  allowedRoles?: ("candidate" | "recruiter" | "institution")[];
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
@@ -27,6 +27,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       return <Navigate to="/student" replace />;
     } else if (role === "recruiter") {
       return <Navigate to="/recruiter" replace />;
+    } else if (role === "institution") {
+      return <Navigate to="/institution" replace />;
     }
   }
 
