@@ -1,18 +1,19 @@
-import { useInstitution } from "@/contexts/InstitutionContext";
 import { ShieldCheck, CheckCircle, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 
-const VerificationLogs = () => {
-  const { verificationLogs } = useInstitution();
+// Mock verification logs (to be replaced with real data later)
+const MOCK_LOGS = [
+  { id: "1", certificateCode: "EDU-2025-001", verifiedBy: "TechCorp Recruiting", date: "2025-04-01", status: "Verified" as const },
+  { id: "2", certificateCode: "EDU-2025-002", verifiedBy: "StartupX HR", date: "2025-04-05", status: "Verified" as const },
+  { id: "3", certificateCode: "FAKE-9999", verifiedBy: "BigCo Talent", date: "2025-04-08", status: "Invalid" as const },
+  { id: "4", certificateCode: "EDU-2025-003", verifiedBy: "InnovateCo", date: "2025-04-12", status: "Verified" as const },
+  { id: "5", certificateCode: "XYZ-0001", verifiedBy: "GlobalHR Inc", date: "2025-04-15", status: "Invalid" as const },
+];
 
+const VerificationLogs = () => {
   return (
     <div>
       <div className="mb-8">
@@ -36,7 +37,7 @@ const VerificationLogs = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {verificationLogs.map(log => (
+            {MOCK_LOGS.map(log => (
               <TableRow key={log.id}>
                 <TableCell>
                   <code className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-mono">

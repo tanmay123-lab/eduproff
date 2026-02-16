@@ -1,18 +1,34 @@
-import { useInstitution } from "@/contexts/InstitutionContext";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Award, FileText, ShieldCheck, TrendingUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Award, FileText, ShieldCheck, TrendingUp, Loader2 } from "lucide-react";
 
 const InstitutionOverview = () => {
   const { user } = useAuth();
-  const { issuedCertificates, verificationLogs } = useInstitution();
   const userName = user?.email?.split("@")[0] || "Admin";
+  const [certCount, setCertCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const verified = verificationLogs.filter(l => l.status === "Verified").length;
-  const invalid = verificationLogs.filter(l => l.status === "Invalid").length;
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { count, error } = await supabase
+        .from('issued_certificates')
+        .select('*', { count: 'exact', head: true });
+
+      if (!error && count !== null) setCertCount(count);
+      setLoading(false);
+    };
+    fetchStats();
+  }, []);
+
+  // Mock verification stats (to be replaced with real data later)
+  const verificationLogs = 5;
+  const verified = 3;
+  const invalid = 2;
 
   const stats = [
-    { label: "Certificates Issued", value: issuedCertificates.length, icon: FileText, color: "bg-primary/10 text-primary" },
-    { label: "Verifications", value: verificationLogs.length, icon: ShieldCheck, color: "bg-success/10 text-success" },
+    { label: "Certificates Issued", value: loading ? "..." : certCount, icon: FileText, color: "bg-primary/10 text-primary" },
+    { label: "Verifications", value: verificationLogs, icon: ShieldCheck, color: "bg-success/10 text-success" },
     { label: "Verified", value: verified, icon: Award, color: "bg-accent/10 text-accent-foreground" },
     { label: "Invalid Attempts", value: invalid, icon: TrendingUp, color: "bg-destructive/10 text-destructive" },
   ];

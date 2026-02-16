@@ -1,20 +1,50 @@
-import { useInstitution } from "@/contexts/InstitutionContext";
-import { BarChart3, TrendingUp, Award, ShieldCheck, XCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { BarChart3, TrendingUp, Award, XCircle, Loader2 } from "lucide-react";
+
+interface IssuedCert {
+  certificate_id: string;
+  issue_date: string;
+}
 
 const InstitutionAnalytics = () => {
-  const { issuedCertificates, verificationLogs } = useInstitution();
+  const [certs, setCerts] = useState<IssuedCert[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const verified = verificationLogs.filter(l => l.status === "Verified").length;
-  const invalid = verificationLogs.filter(l => l.status === "Invalid").length;
-  const verifyRate = verificationLogs.length > 0 ? Math.round((verified / verificationLogs.length) * 100) : 0;
+  useEffect(() => {
+    const fetchCerts = async () => {
+      const { data, error } = await supabase
+        .from('issued_certificates')
+        .select('certificate_id, issue_date')
+        .order('issued_at', { ascending: false });
 
-  // Certificates by month (simple grouping)
+      if (!error && data) setCerts(data as IssuedCert[]);
+      setLoading(false);
+    };
+    fetchCerts();
+  }, []);
+
+  // Mock verification stats
+  const verified = 3;
+  const invalid = 2;
+  const total = 5;
+  const verifyRate = total > 0 ? Math.round((verified / total) * 100) : 0;
+
+  // Certificates by month
   const byMonth: Record<string, number> = {};
-  issuedCertificates.forEach(c => {
-    const m = c.issueDate.substring(0, 7);
+  certs.forEach(c => {
+    const m = c.issue_date.substring(0, 7);
     byMonth[m] = (byMonth[m] || 0) + 1;
   });
   const months = Object.entries(byMonth).sort((a, b) => a[0].localeCompare(b[0]));
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -31,7 +61,7 @@ const InstitutionAnalytics = () => {
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
             <Award className="w-6 h-6 text-primary" />
           </div>
-          <p className="text-3xl font-bold text-foreground">{issuedCertificates.length}</p>
+          <p className="text-3xl font-bold text-foreground">{certs.length}</p>
           <p className="text-sm text-muted-foreground">Total Issued</p>
         </div>
         <div className="bg-card rounded-xl p-6 shadow-soft border border-border/50 text-center">
@@ -63,10 +93,7 @@ const InstitutionAnalytics = () => {
                 <div key={month} className="flex items-center gap-4">
                   <span className="text-sm text-muted-foreground w-20 shrink-0">{month}</span>
                   <div className="flex-1 h-8 bg-secondary rounded-lg overflow-hidden">
-                    <div
-                      className="h-full gradient-hero rounded-lg flex items-center px-3"
-                      style={{ width: `${pct}%` }}
-                    >
+                    <div className="h-full gradient-hero rounded-lg flex items-center px-3" style={{ width: `${pct}%` }}>
                       <span className="text-xs font-semibold text-primary-foreground">{count}</span>
                     </div>
                   </div>

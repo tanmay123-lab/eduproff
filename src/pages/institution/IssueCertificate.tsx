@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useInstitution } from "@/contexts/InstitutionContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { FilePlus, CheckCircle, Copy } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { FilePlus, CheckCircle, Copy, Loader2 } from "lucide-react";
 
 const IssueCertificate = () => {
   const [certificateId, setCertificateId] = useState("");
@@ -12,30 +13,53 @@ const IssueCertificate = () => {
   const [courseName, setCourseName] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [issuedCode, setIssuedCode] = useState<string | null>(null);
-  const { issueCertificate, isCertificateIdTaken } = useInstitution();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!certificateId.trim() || !studentName.trim() || !courseName.trim() || !issueDate) {
       toast({ title: "All fields are required", variant: "destructive" });
       return;
     }
-    if (isCertificateIdTaken(certificateId)) {
-      toast({ title: "Certificate ID already exists", description: "Please use a unique Certificate ID.", variant: "destructive" });
+    if (!user) {
+      toast({ title: "Not authenticated", variant: "destructive" });
       return;
     }
-    const cert = issueCertificate(certificateId.trim(), studentName.trim(), courseName.trim(), issueDate);
-    if (!cert) {
-      toast({ title: "Failed to issue certificate", variant: "destructive" });
-      return;
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('issued_certificates')
+        .insert({
+          certificate_id: certificateId.trim(),
+          student_name: studentName.trim(),
+          course_name: courseName.trim(),
+          issue_date: issueDate,
+          institution_id: user.id,
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast({ title: "Certificate ID already exists", description: "Please use a unique Certificate ID.", variant: "destructive" });
+        } else {
+          toast({ title: "Failed to issue certificate", description: error.message, variant: "destructive" });
+        }
+        return;
+      }
+
+      setIssuedCode(certificateId.trim());
+      toast({ title: "Certificate Issued! 🎉", description: `ID: ${certificateId.trim()}` });
+      setCertificateId("");
+      setStudentName("");
+      setCourseName("");
+      setIssueDate("");
+    } catch (err) {
+      toast({ title: "An error occurred", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
-    setIssuedCode(cert.certificateId);
-    toast({ title: "Certificate Issued! 🎉", description: `ID: ${cert.certificateId}` });
-    setCertificateId("");
-    setStudentName("");
-    setCourseName("");
-    setIssueDate("");
   };
 
   const copyCode = () => {
@@ -92,9 +116,18 @@ const IssueCertificate = () => {
           <Label htmlFor="issueDate">Issue Date *</Label>
           <Input id="issueDate" type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} className="mt-1.5" />
         </div>
-        <Button type="submit" variant="hero" size="lg" className="w-full">
-          <FilePlus className="w-4 h-4" />
-          Issue Certificate
+        <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Issuing...
+            </>
+          ) : (
+            <>
+              <FilePlus className="w-4 h-4" />
+              Issue Certificate
+            </>
+          )}
         </Button>
       </form>
     </div>
