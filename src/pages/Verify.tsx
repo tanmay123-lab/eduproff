@@ -7,7 +7,6 @@ import { Layout } from "@/components/layout/Layout";
 import { Upload, Sparkles, FileCheck, AlertCircle, Loader2 } from "lucide-react";
 import { useCertificates } from "@/hooks/useCertificates";
 import { useAuth } from "@/hooks/useAuth";
-import { useInstitution } from "@/contexts/InstitutionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -28,7 +27,6 @@ const Verify = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addCertificate, updateCertificateStatus } = useCertificates();
-  const { getValidCodes } = useInstitution();
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -123,7 +121,7 @@ const Verify = () => {
       const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
         "verify-certificate",
         {
-          body: { title, issuer, certificateCode: certificateCode.trim() || null, fileType: "pdf", validCodes: getValidCodes() },
+          body: { title, issuer, certificateCode: certificateCode.trim() || null, fileType: "pdf" },
         }
       );
 
