@@ -53,6 +53,33 @@ export type Database = {
         }
         Relationships: []
       }
+      issued_certificates: {
+        Row: {
+          certificate_id: string
+          course_name: string
+          institution_id: string
+          issue_date: string
+          issued_at: string
+          student_name: string
+        }
+        Insert: {
+          certificate_id: string
+          course_name: string
+          institution_id: string
+          issue_date: string
+          issued_at?: string
+          student_name: string
+        }
+        Update: {
+          certificate_id?: string
+          course_name?: string
+          institution_id?: string
+          issue_date?: string
+          issued_at?: string
+          student_name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
