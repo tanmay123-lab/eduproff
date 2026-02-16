@@ -6,15 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Default valid codes (fallback if none provided by client)
-const DEFAULT_VALID_CODES = [
-  "EDU-2025-001",
-  "EDU-2025-002", 
-  "EDU-2025-003",
-];
-
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -23,9 +15,8 @@ serve(async (req) => {
     // Authenticate the user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      console.error("Missing or invalid authorization header");
       return new Response(
-        JSON.stringify({ error: 'Authentication required', verified: false }),
+        JSON.stringify({ error: 'Authentication required', verified: false, status: 'invalid', trustScore: 0, explanation: 'Authentication required.' }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -38,17 +29,15 @@ serve(async (req) => {
 
     const token = authHeader.replace('Bearer ', '');
     const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
-    
+
     if (claimsError || !claimsData?.claims) {
-      console.error("Authentication failed:", claimsError);
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication', verified: false }),
+        JSON.stringify({ error: 'Invalid authentication', verified: false, status: 'invalid', trustScore: 0, explanation: 'Invalid authentication.' }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const userId = claimsData.claims.sub;
-    console.log(`Authenticated user: ${userId}`);
 
     // Verify user has 'candidate' role
     const { data: roleData, error: roleError } = await supabaseClient
@@ -58,9 +47,8 @@ serve(async (req) => {
       .single();
 
     if (roleError || roleData?.role !== 'candidate') {
-      console.error("Role check failed:", roleError || "User is not a candidate");
       return new Response(
-        JSON.stringify({ error: 'Only candidates can verify certificates', verified: false }),
+        JSON.stringify({ error: 'Only candidates can verify certificates', verified: false, status: 'invalid', trustScore: 0, explanation: 'Only candidates can verify certificates.' }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -71,45 +59,74 @@ serve(async (req) => {
       body = await req.json();
     } catch {
       return new Response(
-        JSON.stringify({ error: 'Invalid JSON body', verified: false }),
+        JSON.stringify({ error: 'Invalid JSON body', verified: false, status: 'invalid', trustScore: 0, explanation: 'Invalid request.' }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { title, issuer, certificateCode, validCodes } = body;
+    const { title, issuer, certificateCode } = body;
 
-    // Validate required fields
     if (!title || !issuer) {
       return new Response(
-        JSON.stringify({ error: 'Title and issuer are required', verified: false }),
+        JSON.stringify({ error: 'Title and issuer are required', verified: false, status: 'invalid', trustScore: 0, explanation: 'Title and issuer are required.' }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`Verifying certificate: ${title} from ${issuer}, code: ${certificateCode || 'not provided'}`);
+    if (!certificateCode?.trim()) {
+      return new Response(
+        JSON.stringify({
+          verified: false, trustScore: 10, status: 'invalid',
+          explanation: 'No certificate code provided. Please enter your certificate code for verification.',
+          extractedTitle: title.trim(), extractedIssuer: issuer.trim(), extractedDate: null,
+          checks: [{ name: "Certificate Code Validation", passed: false, score: 10, details: 'No certificate code provided' }],
+          warnings: ['No certificate code provided']
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Use validCodes from institution context if provided, otherwise fall back to defaults
-    const registryCodes = (Array.isArray(validCodes) && validCodes.length > 0) ? validCodes.map((c: string) => c.toUpperCase()) : DEFAULT_VALID_CODES;
-    const normalizedCode = certificateCode?.trim().toUpperCase() || '';
-    const isValidCode = registryCodes.includes(normalizedCode);
+    // Query Supabase issued_certificates table using service role for cross-institution lookup
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    const normalizedCode = certificateCode.trim();
+    const { data: certRecord, error: dbError } = await serviceClient
+      .from('issued_certificates')
+      .select('*')
+      .eq('certificate_id', normalizedCode)
+      .maybeSingle();
+
+    if (dbError) {
+      console.error("Database query error:", dbError);
+      return new Response(
+        JSON.stringify({
+          verified: false, trustScore: 0, status: 'error',
+          explanation: 'Verification system error. Please try again later.',
+          extractedTitle: title.trim(), extractedIssuer: issuer.trim(), extractedDate: null,
+          checks: [], warnings: ['System error during verification']
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     let verified: boolean;
     let trustScore: number;
-    let status: 'verified' | 'invalid';
+    let status: string;
     let explanation: string;
 
-    if (isValidCode) {
+    if (certRecord) {
       verified = true;
       trustScore = 95;
       status = 'verified';
-      explanation = `Certificate code ${normalizedCode} has been verified successfully. This is a valid credential.`;
+      explanation = `Certificate ID "${normalizedCode}" exists in institution records. Student: ${certRecord.student_name}, Course: ${certRecord.course_name}.`;
     } else {
       verified = false;
-      trustScore = 20;
+      trustScore = 10;
       status = 'invalid';
-      explanation = certificateCode 
-        ? `Certificate code "${certificateCode}" could not be verified. Please check the code and try again.`
-        : 'No certificate code provided. Please enter your certificate code for verification.';
+      explanation = `Certificate ID "${normalizedCode}" not found in institutional database.`;
     }
 
     const result = {
@@ -119,21 +136,19 @@ serve(async (req) => {
       explanation,
       extractedTitle: title.trim(),
       extractedIssuer: issuer.trim(),
-      extractedDate: null,
+      extractedDate: certRecord?.issue_date || null,
       checks: [
         {
           name: "Certificate Code Validation",
-          passed: isValidCode,
-          score: isValidCode ? 95 : 20,
-          details: isValidCode 
-            ? `Valid certificate code: ${normalizedCode}` 
+          passed: verified,
+          score: trustScore,
+          details: verified
+            ? `Valid certificate code: ${normalizedCode}`
             : 'Certificate code not found in registry'
         }
       ],
-      warnings: isValidCode ? [] : ['Certificate code could not be verified']
+      warnings: verified ? [] : ['Certificate code could not be verified']
     };
-
-    console.log("Verification result:", result);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -142,12 +157,12 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in verify-certificate:", error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error instanceof Error ? error.message : "Verification failed",
         verified: false,
         trustScore: 0,
-        status: 'invalid',
-        explanation: "An error occurred during verification"
+        status: 'error',
+        explanation: "Verification system error."
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
