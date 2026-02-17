@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import { ShieldCheck, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import {
+  ShieldCheck, CheckCircle, XCircle, Loader2, History,
+} from "lucide-react";
 
-interface LogEntry {
+interface VerificationLog {
   id: string;
   certificate_id: string;
   status: string;
@@ -14,26 +17,22 @@ interface LogEntry {
   created_at: string;
 }
 
-const VerificationLogs = () => {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+const RecruiterHistory = () => {
+  const { user } = useAuth();
+  const [logs, setLogs] = useState<VerificationLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchLogs();
-  }, []);
+    if (user) fetchLogs();
+  }, [user]);
 
   const fetchLogs = async () => {
-    // Institution can see logs for their issued certificates
-    const { data: issuedCerts } = await supabase
-      .from("issued_certificates")
-      .select("certificate_id");
+    const { data, error } = await supabase
+      .from("verification_logs")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    if (issuedCerts && issuedCerts.length > 0) {
-      const certIds = issuedCerts.map(c => c.certificate_id);
-      // Use the service-role via edge function or show what's available
-      // For now, verification_logs are recruiter-owned, so institution sees via a different view
-    }
-
+    if (!error && data) setLogs(data);
     setLoading(false);
   };
 
@@ -41,11 +40,11 @@ const VerificationLogs = () => {
     <div>
       <div className="mb-8">
         <h1 className="font-display text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
-          <ShieldCheck className="w-6 h-6 text-primary" />
-          Verification Logs
+          <History className="w-6 h-6 text-primary" />
+          Verification History
         </h1>
         <p className="text-muted-foreground">
-          Track how your certificates are being verified by recruiters.
+          Your past certificate verification attempts.
         </p>
       </div>
 
@@ -56,8 +55,8 @@ const VerificationLogs = () => {
       ) : logs.length === 0 ? (
         <div className="bg-card rounded-2xl p-12 shadow-soft border border-border/50 text-center">
           <ShieldCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="font-display text-lg font-semibold text-foreground mb-2">No verification logs yet</h3>
-          <p className="text-muted-foreground">Logs will appear here when recruiters verify your certificates.</p>
+          <h3 className="font-display text-lg font-semibold text-foreground mb-2">No verifications yet</h3>
+          <p className="text-muted-foreground">Your verification history will appear here.</p>
         </div>
       ) : (
         <div className="bg-card rounded-2xl shadow-soft border border-border/50 overflow-hidden">
@@ -67,11 +66,11 @@ const VerificationLogs = () => {
                 <TableHead>Certificate ID</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Trust Score</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>Date Verified</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {logs.map(log => (
+              {logs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell>
                     <code className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-mono">
@@ -87,7 +86,7 @@ const VerificationLogs = () => {
                     ) : (
                       <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
                         <XCircle className="w-3 h-3 mr-1" />
-                        {log.status}
+                        {log.status === "not_found" ? "Not Found" : log.status}
                       </Badge>
                     )}
                   </TableCell>
@@ -103,4 +102,4 @@ const VerificationLogs = () => {
   );
 };
 
-export default VerificationLogs;
+export default RecruiterHistory;

@@ -9,7 +9,6 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Student from "./pages/Student";
-import Recruiter from "./pages/Recruiter";
 import Verify from "./pages/Verify";
 import GenerateCV from "./pages/GenerateCV";
 import UploadSuccess from "./pages/UploadSuccess";
@@ -29,6 +28,10 @@ import IssueCertificate from "./pages/institution/IssueCertificate";
 import IssuedCertificates from "./pages/institution/IssuedCertificates";
 import VerificationLogs from "./pages/institution/VerificationLogs";
 import InstitutionAnalytics from "./pages/institution/InstitutionAnalytics";
+import RecruiterDashboard from "./pages/recruiter/RecruiterDashboard";
+import RecruiterOverview from "./pages/recruiter/RecruiterOverview";
+import RecruiterVerify from "./pages/recruiter/RecruiterVerify";
+import RecruiterHistory from "./pages/recruiter/RecruiterHistory";
 
 const queryClient = new QueryClient();
 
@@ -58,14 +61,18 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
-              <Route 
-                path="/recruiter" 
+              <Route
+                path="/recruiter"
                 element={
                   <ProtectedRoute allowedRoles={["recruiter"]}>
-                    <Recruiter />
+                    <RecruiterDashboard />
                   </ProtectedRoute>
-                } 
-              />
+                }
+              >
+                <Route index element={<RecruiterOverview />} />
+                <Route path="verify" element={<RecruiterVerify />} />
+                <Route path="history" element={<RecruiterHistory />} />
+              </Route>
               <Route 
                 path="/verify" 
                 element={

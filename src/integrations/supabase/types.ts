@@ -149,6 +149,33 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_logs: {
+        Row: {
+          certificate_id: string
+          created_at: string
+          id: string
+          recruiter_id: string
+          status: string
+          trust_score: number
+        }
+        Insert: {
+          certificate_id: string
+          created_at?: string
+          id?: string
+          recruiter_id: string
+          status: string
+          trust_score?: number
+        }
+        Update: {
+          certificate_id?: string
+          created_at?: string
+          id?: string
+          recruiter_id?: string
+          status?: string
+          trust_score?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
