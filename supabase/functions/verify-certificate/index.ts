@@ -22,7 +22,7 @@ serve(async (req) => {
       );
     }
 
-    const { certificate_id } = body;
+    const { certificate_id, recruiter_id } = body;
 
     if (!certificate_id?.trim()) {
       return new Response(
@@ -51,22 +51,42 @@ serve(async (req) => {
       );
     }
 
+    let result;
+
     if (certRecord) {
-      return new Response(
-        JSON.stringify({
-          status: "verified",
-          trust_score: 100,
-          message: "Certificate Verified Successfully",
-          student_name: certRecord.student_name,
-          course_name: certRecord.course_name,
-          issue_date: certRecord.issue_date,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      result = {
+        status: "verified",
+        trust_score: 100,
+        message: "Certificate Verified Successfully",
+        student_name: certRecord.student_name,
+        course_name: certRecord.course_name,
+        issue_date: certRecord.issue_date,
+      };
+    } else {
+      result = {
+        status: "not_found",
+        trust_score: 0,
+        message: "Certificate Not Found",
+      };
+    }
+
+    // Log the verification attempt if recruiter_id is provided
+    if (recruiter_id?.trim()) {
+      try {
+        await serviceClient.from('verification_logs').insert({
+          certificate_id: normalizedCode,
+          recruiter_id: recruiter_id.trim(),
+          status: result.status,
+          trust_score: result.trust_score,
+        });
+      } catch (logError) {
+        console.error("Failed to log verification:", logError);
+        // Don't fail the request if logging fails
+      }
     }
 
     return new Response(
-      JSON.stringify({ status: "not_found", trust_score: 0, message: "Certificate Not Found" }),
+      JSON.stringify(result),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
