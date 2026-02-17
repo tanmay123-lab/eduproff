@@ -117,33 +117,26 @@ const Verify = () => {
     setIsVerifying(true);
 
     try {
-      // Call AI verification edge function (PDF-only, no image analysis)
+      // Call verification edge function
       const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
         "verify-certificate",
         {
-          body: { title, issuer, certificateCode: certificateCode.trim() || null, fileType: "pdf" },
+          body: { certificate_id: certificateCode.trim() },
         }
       );
 
       if (verifyError) {
         console.error("Verification error:", verifyError);
-        toast.error("Verification service unavailable. Please try again.");
+        toast.error("Verification service unavailable");
         setIsVerifying(false);
         return;
       }
 
-      // Handle rate limits and payment errors
-      if (verificationResult?.error) {
-        toast.error(verificationResult.error);
-        setIsVerifying(false);
-        return;
-      }
-
-      // Add certificate to database with verification result
+      // Add certificate to database
       const { data: certificate, error } = await addCertificate(
-        verificationResult.extractedTitle || title,
-        verificationResult.extractedIssuer || issuer,
-        verificationResult.extractedDate || undefined
+        verificationResult.course_name || title,
+        verificationResult.student_name || issuer,
+        verificationResult.issue_date || undefined
       );
       
       if (error || !certificate) {
@@ -152,52 +145,28 @@ const Verify = () => {
         return;
       }
 
-      // Upload file to storage and get URL
+      // Upload file to storage
       const fileUrl = await uploadCertificateFile(file, certificate.id);
-      
       if (fileUrl) {
-        // Update certificate with file URL
         await supabase
           .from('certificates')
           .update({ certificate_url: fileUrl })
           .eq('id', certificate.id);
       }
 
-      // Update status based on AI verification
-      // Verified: trustScore >= 70 and verified flag
-      // Partially Verified: trustScore 50-69 or some checks passed
-      // Invalid: trustScore < 50
-      const isFullyVerified = verificationResult.verified && verificationResult.trustScore >= 70;
-      const isPartiallyVerified = !isFullyVerified && verificationResult.trustScore >= 50;
-      
-      // Prepare state for result pages
+      // Map response to certificate status
       const resultState = {
-        trustScore: verificationResult.trustScore,
-        checks: verificationResult.checks,
-        explanation: verificationResult.explanation,
-        status: isFullyVerified ? 'verified' : isPartiallyVerified ? 'partially_verified' : 'invalid'
+        trustScore: verificationResult.trust_score,
+        status: verificationResult.status,
+        explanation: verificationResult.message,
+        checks: [{ name: "Certificate ID Lookup", passed: verificationResult.status === "verified", score: verificationResult.trust_score, details: verificationResult.message }],
       };
-      
-      if (isFullyVerified) {
-        await updateCertificateStatus(
-          certificate.id, 
-          "verified", 
-          verificationResult.explanation || "Certificate verified successfully"
-        );
-        navigate("/upload-success", { state: resultState });
-      } else if (isPartiallyVerified) {
-        await updateCertificateStatus(
-          certificate.id, 
-          "pending", 
-          verificationResult.explanation || "Partially verified - manual review may be needed"
-        );
+
+      if (verificationResult.status === "verified") {
+        await updateCertificateStatus(certificate.id, "verified", verificationResult.message);
         navigate("/upload-success", { state: resultState });
       } else {
-        await updateCertificateStatus(
-          certificate.id, 
-          "failed", 
-          verificationResult.explanation || "Could not verify certificate authenticity"
-        );
+        await updateCertificateStatus(certificate.id, "failed", verificationResult.message);
         navigate("/upload-failed", { state: resultState });
       }
     } catch (err) {
