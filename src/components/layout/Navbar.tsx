@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, GraduationCap, LogOut, User } from "lucide-react";
+import { Menu, Shield, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -46,7 +46,6 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, role, signOut } = useAuth();
 
-  // Determine which nav links to show based on auth state
   const navLinks = user 
     ? (role === "recruiter" ? recruiterLinks : role === "institution" ? institutionLinks : candidateLinks)
     : publicLinks;
@@ -57,15 +56,15 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-      <div className="container mx-auto px-4">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-border">
+      <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl gradient-hero flex items-center justify-center shadow-glow-primary transition-transform group-hover:scale-105">
-              <GraduationCap className="w-6 h-6 text-primary-foreground" />
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <Shield className="w-4.5 h-4.5 text-primary-foreground" />
             </div>
-            <span className="font-display font-bold text-xl text-foreground">
+            <span className="font-display font-bold text-lg text-foreground">
               EduProof
             </span>
           </Link>
@@ -76,9 +75,9 @@ export function Navbar() {
               <Link
                 key={link.href}
                 to={link.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
                   location.pathname === link.href
-                    ? "bg-primary/10 text-primary"
+                    ? "bg-primary/8 text-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
@@ -87,8 +86,8 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* CTA Buttons / User Menu */}
-          <div className="hidden lg:flex items-center gap-3">
+          {/* CTA */}
+          <div className="hidden lg:flex items-center gap-2">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -118,7 +117,7 @@ export function Navbar() {
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/auth">Log In</Link>
                 </Button>
-                <Button variant="hero" size="sm" asChild>
+                <Button size="sm" asChild>
                   <Link to="/auth">Sign Up</Link>
                 </Button>
               </>
@@ -132,39 +131,39 @@ export function Navbar() {
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80">
-              <div className="flex flex-col gap-4 mt-8">
+            <SheetContent side="right" className="w-72">
+              <div className="flex flex-col gap-2 mt-8">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     to={link.href}
                     onClick={() => setIsOpen(false)}
-                    className={`px-4 py-3 rounded-lg text-base font-medium transition-colors ${
+                    className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                       location.pathname === link.href
-                        ? "bg-primary/10 text-primary"
+                        ? "bg-primary/8 text-primary"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     }`}
                   >
                     {link.label}
                   </Link>
                 ))}
-                <div className="border-t border-border pt-4 mt-4 flex flex-col gap-3">
+                <div className="border-t border-border pt-4 mt-4 flex flex-col gap-2">
                   {user ? (
                     <>
                       <div className="px-4 py-2 text-sm text-muted-foreground">
-                        Signed in as <span className="font-medium text-foreground">{user.email}</span>
+                        {user.email}
                       </div>
-                      <Button variant="outline" onClick={() => { handleSignOut(); setIsOpen(false); }}>
+                      <Button variant="outline" size="sm" onClick={() => { handleSignOut(); setIsOpen(false); }}>
                         <LogOut className="w-4 h-4 mr-2" />
                         Sign Out
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button variant="outline" asChild>
+                      <Button variant="outline" size="sm" asChild>
                         <Link to="/auth" onClick={() => setIsOpen(false)}>Log In</Link>
                       </Button>
-                      <Button variant="hero" asChild>
+                      <Button size="sm" asChild>
                         <Link to="/auth" onClick={() => setIsOpen(false)}>Sign Up</Link>
                       </Button>
                     </>

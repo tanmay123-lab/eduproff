@@ -6,14 +6,14 @@ import { Footer } from "@/components/layout/Footer";
 
 const InstitutionDashboard = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <div className="flex-1 pt-16">
         <SidebarProvider>
           <div className="flex min-h-[calc(100vh-4rem)] w-full">
             <InstitutionSidebar />
-            <main className="flex-1 p-6 lg:p-8">
-              <div className="lg:hidden mb-4">
+            <main className="flex-1 p-8 lg:p-10">
+              <div className="lg:hidden mb-6">
                 <SidebarTrigger />
               </div>
               <Outlet />
