@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { RoleSelector } from "./RoleSelector";
+import { PasswordStrengthIndicator } from "./PasswordStrengthIndicator";
 import type { UserRole } from "@/types";
 
 export function SignupForm() {
@@ -18,37 +19,90 @@ export function SignupForm() {
   const [institutionId, setInstitutionId] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setEmailError("Email is required");
+      return false;
+    }
+    if (!emailRegex.test(email)) {
+      setEmailError("Please enter a valid email address");
+      return false;
+    }
+    setEmailError("");
+    return true;
+  };
+
+  const validatePassword = (password: string): boolean => {
+    if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      return false;
+    }
+    if (!/\d/.test(password)) {
+      setPasswordError("Password must contain at least one number");
+      return false;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      setPasswordError("Password must contain at least one symbol");
+      return false;
+    }
+    setPasswordError("");
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate before submission
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    
+    if (!isEmailValid || !isPasswordValid) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
       const { error } = await signUp(email, password, fullName, selectedRole);
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Signup failed",
-          description: error.message,
-        });
+        // Handle specific error cases
+        if (error.message.includes("already registered") || error.message.includes("already exists")) {
+          setEmailError("This email is already registered");
+          toast({
+            variant: "destructive",
+            title: "Email already registered",
+            description: "Please use a different email or try logging in.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Signup failed",
+            description: error.message,
+          });
+        }
       } else {
         toast({
-          title: "Success",
+          title: "Success! 🎉",
           description: "Account created successfully. Please check your email to verify your account.",
         });
         
-        // Navigate based on role
+        // Navigate based on role to new paths
         setTimeout(() => {
           if (selectedRole === "candidate") {
-            navigate("/student");
+            navigate("/candidate/dashboard");
           } else if (selectedRole === "recruiter") {
-            navigate("/recruiter");
+            navigate("/recruiter/portal");
           } else if (selectedRole === "institution") {
-            navigate("/institution");
+            navigate("/institution/dashboard");
           }
         }, 100);
       }
@@ -138,24 +192,50 @@ export function SignupForm() {
           type="email"
           placeholder="name@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setEmailError("");
+          }}
+          onBlur={(e) => validateEmail(e.target.value)}
           required
           disabled={loading}
+          className={emailError ? "border-red-500" : ""}
         />
+        {emailError && (
+          <p className="text-xs text-red-500 mt-1">{emailError}</p>
+        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-          disabled={loading}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setPasswordError("");
+            }}
+            onBlur={(e) => validatePassword(e.target.value)}
+            required
+            disabled={loading}
+            className={passwordError ? "border-red-500 pr-10" : "pr-10"}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+        {passwordError && (
+          <p className="text-xs text-red-500 mt-1">{passwordError}</p>
+        )}
+        <PasswordStrengthIndicator password={password} />
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
