@@ -1,9 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
-import { Progress } from "@/components/ui/progress";
-import { Card, CardContent } from "@/components/ui/card";
-import { XCircle, RefreshCw, Headphones, ArrowRight, Shield, Search, FileCheck, AlertTriangle, CheckCircle } from "lucide-react";
+import { XCircle, RefreshCw, Headphones, ArrowRight, Shield, CheckCircle } from "lucide-react";
 
 interface VerificationCheck {
   name: string;
@@ -22,109 +20,86 @@ const UploadFailed = () => {
   const location = useLocation();
   const state = location.state as LocationState | null;
   
-  const trustScore = state?.trustScore ?? 20;
+  const trustScore = state?.trustScore ?? 0;
   const checks = state?.checks ?? [
-    { name: "Certificate Code Validation", passed: false, score: 20, details: "Certificate code not found in registry" },
+    { name: "Certificate ID Lookup", passed: false, score: 0, details: "Certificate not found in institutional database" },
   ];
-  const explanation = state?.explanation ?? "Certificate code could not be verified. Please check the code and try again.";
-
-  const getCheckIcon = (name: string) => {
-    if (name.includes("Code") || name.includes("Validation")) return Shield;
-    if (name.includes("Duplicate")) return Search;
-    return FileCheck;
-  };
+  const explanation = state?.explanation ?? "Certificate Not Found. Please check the ID and try again.";
 
   const failedChecks = checks.filter(c => !c.passed);
 
   return (
     <Layout>
       <section className="min-h-[80vh] flex items-center py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-xl mx-auto text-center">
-            {/* Failed Animation */}
-            <div className="relative mb-8">
-              <div className="w-24 h-24 rounded-full bg-destructive/10 flex items-center justify-center mx-auto animate-scale-in">
-                <XCircle className="w-12 h-12 text-destructive" />
+        <div className="container mx-auto px-6">
+          <div className="max-w-lg mx-auto text-center">
+            {/* Failed Icon */}
+            <div className="mb-8">
+              <div className="w-20 h-20 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto">
+                <XCircle className="w-10 h-10 text-destructive" />
               </div>
             </div>
 
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4 animate-fade-in">
-              Oops! 😕
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
+              Verification Failed
             </h1>
-            <p className="text-xl text-destructive font-medium mb-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-              Certificate verification failed ❌
-            </p>
-            <p className="text-muted-foreground mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              Don't worry – this happens sometimes! Review the checks below to understand why.
+            <p className="text-muted-foreground mb-8">
+              The certificate could not be verified. Review the details below.
             </p>
 
-            {/* Trust Score Card */}
-            <Card className="mb-6 shadow-medium border-destructive/20 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-semibold text-foreground">Trust Score</span>
-                  <span className={`text-2xl font-bold ${
-                    trustScore >= 70 ? 'text-success' : trustScore >= 50 ? 'text-warning' : 'text-destructive'
-                  }`}>{trustScore}%</span>
-                </div>
-                <Progress 
-                  value={trustScore} 
-                  className={`h-3 mb-4 ${trustScore < 50 ? '[&>div]:bg-destructive' : ''}`}
+            {/* Trust Score */}
+            <div className="bg-card rounded-2xl p-6 shadow-card border border-border mb-6 text-left">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-muted-foreground">Trust Score</span>
+                <span className="font-display text-3xl font-bold text-destructive">
+                  {trustScore}<span className="text-base text-muted-foreground font-normal">/100</span>
+                </span>
+              </div>
+              <div className="w-full h-2.5 bg-secondary rounded-full overflow-hidden mb-4">
+                <div 
+                  className="h-full rounded-full bg-destructive transition-all duration-500"
+                  style={{ width: `${Math.max(trustScore, 2)}%` }}
                 />
-                <p className="text-sm text-muted-foreground text-left">{explanation}</p>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-destructive/10 text-destructive">
+                <Shield className="w-3 h-3" />
+                NOT FOUND
+              </div>
+              <p className="text-sm text-muted-foreground mt-3">{explanation}</p>
+            </div>
 
-            {/* Verification Checks Card */}
-            <Card className="mb-8 shadow-soft animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
-              <CardContent className="pt-6">
-                <h3 className="font-semibold text-foreground mb-4 text-left flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-warning" />
-                  Verification Checks ({failedChecks.length} failed)
-                </h3>
-                <div className="space-y-3">
-                  {checks.map((check, index) => {
-                    const Icon = getCheckIcon(check.name);
-                    return (
-                      <div 
-                        key={index} 
-                        className={`flex items-start gap-3 p-3 rounded-lg ${
-                          check.passed ? 'bg-success/5' : 'bg-destructive/5'
-                        }`}
-                      >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          check.passed ? 'bg-success/10' : 'bg-destructive/10'
-                        }`}>
-                          <Icon className={`w-4 h-4 ${check.passed ? 'text-success' : 'text-destructive'}`} />
-                        </div>
-                        <div className="flex-1 text-left">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-sm text-foreground">{check.name}</span>
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                              check.passed 
-                                ? 'bg-success/10 text-success' 
-                                : 'bg-destructive/10 text-destructive'
-                            }`}>
-                              {check.score}%
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">{check.details}</p>
-                        </div>
-                        {check.passed ? (
-                          <CheckCircle className="w-5 h-5 flex-shrink-0 text-success" />
-                        ) : (
-                          <XCircle className="w-5 h-5 flex-shrink-0 text-destructive" />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Checks */}
+            <div className="bg-card rounded-2xl p-6 shadow-card border border-border mb-8 text-left">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-4">
+                Verification Checks ({failedChecks.length} failed)
+              </h3>
+              <div className="space-y-2">
+                {checks.map((check, index) => (
+                  <div 
+                    key={index} 
+                    className={`flex items-center justify-between p-3 rounded-xl ${
+                      check.passed ? 'bg-success/5 border border-success/10' : 'bg-destructive/5 border border-destructive/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {check.passed ? (
+                        <CheckCircle className="w-4 h-4 text-success" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-destructive" />
+                      )}
+                      <span className="text-sm font-medium text-foreground">{check.name}</span>
+                    </div>
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      check.passed ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+                    }`}>{check.score}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
-              <Button variant="hero" size="lg" asChild>
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button size="lg" asChild>
                 <Link to="/verify">
                   <RefreshCw className="w-4 h-4" />
                   Try Again
@@ -138,11 +113,11 @@ const UploadFailed = () => {
               </Button>
             </div>
 
-            <div className="mt-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
-              <Button variant="ghost" asChild>
+            <div className="mt-4">
+              <Button variant="ghost" size="sm" asChild>
                 <Link to="/">
                   Back to Home
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </Button>
             </div>
