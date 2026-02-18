@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
@@ -25,7 +25,7 @@ const RATE_LIMIT_CONFIG = {
 async function checkRateLimit(
   identifier: string,
   config: typeof RATE_LIMIT_CONFIG,
-  supabaseAdmin: any
+  supabaseAdmin: SupabaseClient
 ): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
   const key = `${config.keyPrefix}:${identifier}`;
   const now = Date.now();
