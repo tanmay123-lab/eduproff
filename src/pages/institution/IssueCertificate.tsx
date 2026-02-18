@@ -50,7 +50,7 @@ const IssueCertificate = () => {
       }
 
       setIssuedCode(certificateId.trim());
-      toast({ title: "Certificate Issued! 🎉", description: `ID: ${certificateId.trim()}` });
+      toast({ title: "Certificate Issued!", description: `ID: ${certificateId.trim()}` });
       setCertificateId("");
       setStudentName("");
       setCourseName("");
@@ -70,22 +70,22 @@ const IssueCertificate = () => {
   };
 
   return (
-    <div className="max-w-xl">
+    <div className="max-w-lg">
       <div className="mb-8">
-        <h1 className="font-display text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
-          <FilePlus className="w-6 h-6 text-primary" />
+        <h1 className="font-display text-2xl font-bold text-foreground mb-1 flex items-center gap-2">
+          <FilePlus className="w-5 h-5 text-primary" />
           Issue Certificate
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Fill in the details to issue a new certificate with a unique Certificate ID.
         </p>
       </div>
 
       {issuedCode && (
-        <div className="mb-6 p-4 rounded-xl bg-success/10 border border-success/20">
+        <div className="mb-6 p-4 rounded-xl bg-success/8 border border-success/15">
           <div className="flex items-center gap-2 mb-2">
-            <CheckCircle className="w-5 h-5 text-success" />
-            <span className="font-semibold text-foreground">Certificate Issued Successfully!</span>
+            <CheckCircle className="w-4 h-4 text-success" />
+            <span className="font-semibold text-sm text-foreground">Certificate Issued Successfully</span>
           </div>
           <div className="flex items-center gap-2">
             <code className="px-3 py-1.5 bg-background rounded-lg text-sm font-mono font-bold text-foreground">
@@ -98,25 +98,25 @@ const IssueCertificate = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 space-y-5">
-        <div>
-          <Label htmlFor="certificateId">Certificate ID / Issue ID *</Label>
-          <Input id="certificateId" value={certificateId} onChange={e => setCertificateId(e.target.value)} placeholder="e.g. EDU-2025-004" className="mt-1.5" />
-          <p className="text-xs text-muted-foreground mt-1">Must be unique. This ID will be used for verification.</p>
+      <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-6 shadow-card border border-border space-y-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="certificateId" className="text-sm font-medium">Certificate ID / Issue ID *</Label>
+          <Input id="certificateId" value={certificateId} onChange={e => setCertificateId(e.target.value)} placeholder="e.g. EDU-2025-004" />
+          <p className="text-xs text-muted-foreground">Must be unique. Used for verification.</p>
         </div>
-        <div>
-          <Label htmlFor="studentName">Student Name *</Label>
-          <Input id="studentName" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="e.g. Alice Johnson" className="mt-1.5" />
+        <div className="space-y-1.5">
+          <Label htmlFor="studentName" className="text-sm font-medium">Student Name *</Label>
+          <Input id="studentName" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="e.g. Alice Johnson" />
         </div>
-        <div>
-          <Label htmlFor="courseName">Course Name *</Label>
-          <Input id="courseName" value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="e.g. Data Science Fundamentals" className="mt-1.5" />
+        <div className="space-y-1.5">
+          <Label htmlFor="courseName" className="text-sm font-medium">Course Name *</Label>
+          <Input id="courseName" value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="e.g. Data Science Fundamentals" />
         </div>
-        <div>
-          <Label htmlFor="issueDate">Issue Date *</Label>
-          <Input id="issueDate" type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} className="mt-1.5" />
+        <div className="space-y-1.5">
+          <Label htmlFor="issueDate" className="text-sm font-medium">Issue Date *</Label>
+          <Input id="issueDate" type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} />
         </div>
-        <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isSubmitting}>
+        <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />

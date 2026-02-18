@@ -21,10 +21,10 @@ const items = [
 
 export function InstitutionSidebar() {
   return (
-    <Sidebar className="border-r border-border/50">
-      <SidebarContent className="pt-4">
+    <Sidebar className="border-r border-border">
+      <SidebarContent className="pt-6 px-3">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4">
+          <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground px-3 mb-2">
             Institution Portal
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -35,8 +35,8 @@ export function InstitutionSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/institution"}
-                      className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                      activeClassName="bg-primary/10 text-primary"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                      activeClassName="bg-primary/8 text-primary"
                     >
                       <item.icon className="w-4 h-4" />
                       <span>{item.title}</span>
