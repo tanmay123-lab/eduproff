@@ -53,6 +53,8 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
+              
+              {/* Candidate routes - both old and new paths for backward compatibility */}
               <Route 
                 path="/student" 
                 element={
@@ -61,6 +63,16 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="/candidate/dashboard" 
+                element={
+                  <ProtectedRoute allowedRoles={["candidate"]}>
+                    <Student />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Recruiter routes - old path */}
               <Route
                 path="/recruiter"
                 element={
@@ -73,6 +85,21 @@ const App = () => (
                 <Route path="verify" element={<RecruiterVerify />} />
                 <Route path="history" element={<RecruiterHistory />} />
               </Route>
+              
+              {/* Recruiter routes - new path */}
+              <Route
+                path="/recruiter/portal"
+                element={
+                  <ProtectedRoute allowedRoles={["recruiter"]}>
+                    <RecruiterDashboard />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<RecruiterOverview />} />
+                <Route path="verify" element={<RecruiterVerify />} />
+                <Route path="history" element={<RecruiterHistory />} />
+              </Route>
+              
               <Route 
                 path="/verify" 
                 element={
@@ -105,6 +132,8 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
+              
+              {/* Institution routes - old path */}
               <Route
                 path="/institution"
                 element={
@@ -119,6 +148,23 @@ const App = () => (
                 <Route path="logs" element={<VerificationLogs />} />
                 <Route path="analytics" element={<InstitutionAnalytics />} />
               </Route>
+              
+              {/* Institution routes - new path */}
+              <Route
+                path="/institution/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["institution"]}>
+                    <InstitutionDashboard />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<InstitutionOverview />} />
+                <Route path="issue" element={<IssueCertificate />} />
+                <Route path="certificates" element={<IssuedCertificates />} />
+                <Route path="logs" element={<VerificationLogs />} />
+                <Route path="analytics" element={<InstitutionAnalytics />} />
+              </Route>
+              
               <Route path="/support" element={<Support />} />
               <Route path="/careers" element={<Careers />} />
               <Route path="/check" element={<PublicVerify />} />
