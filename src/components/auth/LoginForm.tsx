@@ -154,7 +154,7 @@ export function LoginForm() {
           <p className="text-xs text-red-500 mt-1">{passwordError}</p>
         )}
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full hover:scale-[1.02] transition-transform" disabled={loading} size="lg">
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Sign In
       </Button>
