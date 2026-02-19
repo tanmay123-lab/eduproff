@@ -1,53 +1,141 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { SignupForm } from "@/components/auth/SignupForm";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Shield, CheckCircle, Lock, Zap } from "lucide-react";
 
-const Auth = () => {
-    const { register, handleSubmit } = useForm();
-    const onSubmit = data => {
-        console.log(data);
-    };
+export default function Auth() {
+  const [activeTab, setActiveTab] = useState("login");
 
-    return (
-        <div className="p-8 bg-white rounded-2xl shadow-md max-w-md mx-auto space-y-8">
-            <h1 className="text-2xl font-semibold text-gray-800">Institution Registration</h1>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Institution Name</label>
-                    <input type="text" {...register('institutionName')} className="block w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-400 focus-visible:ring-2 focus-visible:ring-blue-400" />
-                </div>
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input type="email" {...register('email')} className="block w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-400 focus-visible:ring-2 focus-visible:ring-blue-400" />
-                </div>
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="tel" {...register('phone')} className="block w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-400 focus-visible:ring-2 focus-visible:ring-blue-400" />
-                </div>
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Address</label>
-                    <textarea {...register('address')} className="block w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-400 focus-visible:ring-2 focus-visible:ring-blue-400" rows="3"></textarea>
-                </div>
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Select Role</label>
-                    <div className="space-y-2">
-                        <div className="p-4 border border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
-                            <input type="radio" id="role1" {...register('role')} value="administrator" />
-                            <label htmlFor="role1" className="ml-2 text-sm text-gray-700">Administrator</label>
-                        </div>
-                        <div className="p-4 border border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
-                            <input type="radio" id="role2" {...register('role')} value="teacher" />
-                            <label htmlFor="role2" className="ml-2 text-sm text-gray-700">Teacher</label>
-                        </div>
-                        <div className="p-4 border border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
-                            <input type="radio" id="role3" {...register('role')} value="student" />
-                            <label htmlFor="role3" className="ml-2 text-sm text-gray-700">Student</label>
-                        </div>
-                    </div>
-                </div>
-                <button type="submit" className="w-full text-white bg-blue-600 rounded-lg p-3 hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 transition-colors">Register</button>
-            </form>
+  return (
+    <div className="min-h-screen flex">
+      {/* Left Column - Branding Section */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-12 flex-col justify-between relative overflow-hidden">
+        {/* Decorative background pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+        
+        <div className="relative z-10">
+          <Link 
+            to="/" 
+            className="inline-flex items-center text-sm text-white/80 hover:text-white transition-all duration-200 hover:gap-3 gap-2 mb-12"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
+
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-semibold shadow-lg">
+              <Shield className="w-4 h-4" />
+              Secure Platform
+            </div>
+
+            <h1 className="text-5xl font-bold text-white leading-tight">
+              Welcome to<br />EduProof
+            </h1>
+            
+            <p className="text-xl text-white/90 leading-relaxed max-w-md">
+              Secure credential verification platform for students, recruiters, and educational institutions.
+            </p>
+          </div>
         </div>
-    );
-};
 
-export default Auth;
+        <div className="relative z-10 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+              <CheckCircle className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-1">Verified Credentials</h3>
+              <p className="text-white/80 text-sm">Instant verification with 99.9% accuracy</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+              <Lock className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-1">Secure & Private</h3>
+              <p className="text-white/80 text-sm">Enterprise-grade security for your data</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-1">Lightning Fast</h3>
+              <p className="text-white/80 text-sm">Get results in under 3 seconds</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column - Auth Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background">
+        <div className="w-full max-w-md">
+          {/* Mobile back button */}
+          <div className="lg:hidden mb-8">
+            <Link 
+              to="/" 
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-all duration-200 hover:gap-3 gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </div>
+
+          <Card className="border-2 shadow-xl">
+            <CardHeader className="space-y-2 text-center pb-6">
+              <CardTitle className="text-3xl font-bold">
+                {activeTab === "login" ? "Welcome Back" : "Create Account"}
+              </CardTitle>
+              <CardDescription className="text-base">
+                {activeTab === "login" 
+                  ? "Sign in to your account to continue" 
+                  : "Join EduProof to verify credentials"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pb-6">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 p-1.5 h-12 mb-6">
+                  <TabsTrigger value="login" className="rounded-lg text-sm font-semibold">Login</TabsTrigger>
+                  <TabsTrigger value="signup" className="rounded-lg text-sm font-semibold">Sign Up</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="login" className="space-y-6">
+                  <LoginForm />
+                  <p className="text-center text-sm text-muted-foreground">
+                    Don't have an account?{" "}
+                    <button
+                      onClick={() => setActiveTab("signup")}
+                      className="text-primary hover:underline font-semibold transition-all duration-200"
+                    >
+                      Sign up
+                    </button>
+                  </p>
+                </TabsContent>
+                
+                <TabsContent value="signup" className="space-y-6">
+                  <SignupForm />
+                  <p className="text-center text-sm text-muted-foreground">
+                    Already have an account?{" "}
+                    <button
+                      onClick={() => setActiveTab("login")}
+                      className="text-primary hover:underline font-semibold transition-all duration-200"
+                    >
+                      Login
+                    </button>
+                  </p>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
