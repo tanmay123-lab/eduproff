@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { UserCog, GraduationCap, BookOpen } from 'lucide-react';
 
 const Auth = () => {
-    const { register, handleSubmit, setValue, watch } = useForm();
-    const [selectedRole, setSelectedRole] = useState('');
+    const { register, handleSubmit, watch } = useForm();
+    const selectedRole = watch('role');
     const onSubmit = data => {
         console.log(data);
-    };
-
-    const handleRoleSelect = (role: string) => {
-        setSelectedRole(role);
-        setValue('role', role);
     };
 
     const roles = [
@@ -27,7 +22,7 @@ const Auth = () => {
                 <div className="hidden lg:flex flex-col justify-center space-y-6 p-8">
                     <div className="space-y-4">
                         <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                            Welcome to EduProff
+                            Welcome to EduProof
                         </h1>
                         <p className="text-xl text-muted-foreground leading-relaxed">
                             Join our platform to manage and verify educational credentials with ease.
@@ -113,7 +108,6 @@ const Auth = () => {
                                                         {...register('role')} 
                                                         value={role.value}
                                                         className="sr-only"
-                                                        onChange={() => handleRoleSelect(role.value)}
                                                     />
                                                     <label 
                                                         htmlFor={role.value}
