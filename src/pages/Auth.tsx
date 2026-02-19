@@ -1,40 +1,65 @@
-<template>
-  <div class="flex h-screen">
-    <div class="w-1/2 bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">  
-      <h1 class="text-white text-4xl font-bold">Brand Name</h1>
-    </div>
-    <div class="w-1/2 flex items-center justify-center">
-      <div class="bg-white p-8 rounded-lg shadow-md w-96">
-        <h2 class="text-2xl font-semibold mb-4">Authentication</h2>
-        <div class="flex space-x-4 mb-4">
-          <div class="card role-card">
-            <LucideIcon name="Icon1" />
-            <span>Role 1</span>
-          </div>
-          <div class="card role-card">
-            <LucideIcon name="Icon2" />
-            <span>Role 2</span>
-          </div>
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { BrandingPanel } from "@/components/auth/BrandingPanel";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { Shield } from "lucide-react";
+
+export default function Auth() {
+  const { user, role, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user && role) {
+      switch (role) {
+        case "candidate":
+          navigate("/student");
+          break;
+        case "recruiter":
+          navigate("/recruiter");
+          break;
+        case "institution":
+          navigate("/institution");
+          break;
+      }
+    }
+  }, [user, role, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#4f46e5] border-t-transparent" />
+          <span className="text-sm text-muted-foreground">Loading...</span>
         </div>
-        <input placeholder="Email" class="h-12 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all p-2 mb-4 w-full" />
-        <input placeholder="Password" class="h-12 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all p-2 mb-4 w-full" />
-        <button class="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg h-12 hover:scale-105 transition-all">Submit</button>
       </div>
-    </div>
-  </div>
-</template>
+    );
+  }
 
-<script setup>
-// Import any necessary icons from lucide-react
-import { Icon1, Icon2 } from 'lucide-react';
-</script>
-<style>
-.card {
-  cursor: pointer;
-  transition: transform 0.3s;
-}
+  return (
+    <main className="flex min-h-screen bg-background">
+      {/* Left: Branding */}
+      <BrandingPanel />
 
-.card:hover {
-  transform: scale(1.05);
+      {/* Right: Auth form */}
+      <div className="relative flex flex-1 items-center justify-center px-6 py-12 lg:px-12">
+        {/* Subtle background texture */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
+
+        <div className="relative z-10 w-full max-w-[440px]">
+          {/* Mobile logo */}
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#2563eb] to-[#7c3aed]">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-lg font-semibold tracking-tight text-foreground">
+              EduProff
+            </span>
+          </div>
+
+          <AuthForm />
+        </div>
+      </div>
+    </main>
+  );
 }
-</style>
