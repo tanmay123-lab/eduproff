@@ -32,6 +32,7 @@ import RecruiterDashboard from "./pages/recruiter/RecruiterDashboard";
 import RecruiterOverview from "./pages/recruiter/RecruiterOverview";
 import RecruiterVerify from "./pages/recruiter/RecruiterVerify";
 import RecruiterHistory from "./pages/recruiter/RecruiterHistory";
+import CertificateView from "./pages/CertificateView";
 
 const queryClient = new QueryClient();
 
@@ -122,6 +123,7 @@ const App = () => (
               <Route path="/support" element={<Support />} />
               <Route path="/careers" element={<Careers />} />
               <Route path="/check" element={<PublicVerify />} />
+              <Route path="/certificate/:id" element={<CertificateView />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
