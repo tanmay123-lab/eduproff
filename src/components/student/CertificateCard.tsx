@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Award, Building2, Calendar, FileCheck, Clock, XCircle, Trash2, Eye, Copy, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Certificate } from "@/hooks/useCertificates";
@@ -19,6 +20,7 @@ interface CertificateCardProps {
 }
 
 export const CertificateCard = ({ certificate, onDelete }: CertificateCardProps) => {
+  const navigate = useNavigate();
   const [showPreview, setShowPreview] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loadingUrl, setLoadingUrl] = useState(false);
@@ -204,6 +206,14 @@ export const CertificateCard = ({ certificate, onDelete }: CertificateCardProps)
 
       {/* Action buttons row */}
       <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate(`/certificate/${certificate.id}`)}
+        >
+          <Eye className="w-4 h-4 mr-1" />
+          View Certificate
+        </Button>
         {certificate.certificate_url && (
           <>
             {isImage && signedUrl && (
