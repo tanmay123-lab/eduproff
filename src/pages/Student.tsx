@@ -1,23 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
-import { Upload, FileCheck, FileText, Award, Loader2, Mail, CheckCircle, AlertCircle, Hash } from "lucide-react";
+import { Upload, FileCheck, FileText, Award, Mail, CheckCircle, AlertCircle, Hash } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useCertificates } from "@/hooks/useCertificates";
+import { Certificate } from "@/hooks/useCertificates";
+import { getCertificates, deleteCertificate as deleteStoredCertificate, StoredCertificate } from "@/utils/certificateStorage";
 import { CertificateCard } from "@/components/student/CertificateCard";
 import { NotificationsPanel } from "@/components/student/NotificationsPanel";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+function toDisplayCertificate(cert: StoredCertificate): Certificate {
+  return {
+    id: cert.id,
+    user_id: "",
+    title: cert.degree,
+    issuer: cert.institution,
+    issue_date: cert.issueDate || null,
+    certificate_url: null,
+    verification_status: cert.status.toLowerCase() as "pending" | "verified" | "failed",
+    verification_message: null,
+    created_at: cert.createdAt,
+    updated_at: cert.createdAt,
+  };
+}
+
 const Student = () => {
   const { user } = useAuth();
-  const { certificates, loading, deleteCertificate } = useCertificates();
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [myCertificateId, setMyCertificateId] = useState("");
   const userName = user?.email?.split("@")[0] || "Achiever";
   const isEmailVerified = !!user?.email_confirmed_at;
+
+  useEffect(() => {
+    setCertificates(getCertificates().map(toDisplayCertificate));
+  }, []);
 
   const handleResendVerification = async () => {
     if (!user?.email) return;
@@ -39,13 +59,10 @@ const Student = () => {
 
   const verifiedCertificates = certificates.filter(c => c.verification_status === "verified");
 
-  const handleDelete = async (id: string) => {
-    const { error } = await deleteCertificate(id);
-    if (error) {
-      toast.error(error);
-    } else {
-      toast.success("Certificate deleted successfully");
-    }
+  const handleDelete = (id: string) => {
+    deleteStoredCertificate(id);
+    setCertificates(getCertificates().map(toDisplayCertificate));
+    toast.success("Certificate deleted successfully");
   };
   return (
     <Layout>
@@ -223,11 +240,7 @@ const Student = () => {
             </Button>
           </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : certificates.length > 0 ? (
+          {certificates.length > 0 ? (
             <div className="grid gap-4">
               {certificates.map((cert) => (
                 <CertificateCard 
