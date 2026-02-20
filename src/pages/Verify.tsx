@@ -9,6 +9,7 @@ import { useCertificates } from "@/hooks/useCertificates";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { addCertificate as addStoredCertificate } from "@/utils/certificateStorage";
 
 const ALLOWED_TYPES = ['application/pdf'];
 const ALLOWED_EXTENSIONS = ['pdf'];
@@ -73,6 +74,7 @@ const Verify = () => {
     if (!user) { toast.error("Please log in to upload certificates"); navigate("/auth"); return; }
 
     setIsVerifying(true);
+    const localCertId = crypto.randomUUID();
 
     try {
       const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
@@ -113,9 +115,29 @@ const Verify = () => {
 
       if (verificationResult.status === "verified") {
         await updateCertificateStatus(certificate.id, "verified", verificationResult.message);
+        addStoredCertificate({
+          id: localCertId,
+          candidateName: verificationResult.student_name || user?.email?.split("@")[0] || "",
+          degree: verificationResult.course_name || title,
+          institution: issuer,
+          issueDate: verificationResult.issue_date || "",
+          status: "Verified",
+          fileName: file.name,
+          createdAt: new Date().toISOString(),
+        });
         navigate("/upload-success", { state: resultState });
       } else {
         await updateCertificateStatus(certificate.id, "failed", verificationResult.message);
+        addStoredCertificate({
+          id: localCertId,
+          candidateName: verificationResult.student_name || user?.email?.split("@")[0] || "",
+          degree: verificationResult.course_name || title,
+          institution: issuer,
+          issueDate: verificationResult.issue_date || "",
+          status: "Failed",
+          fileName: file.name,
+          createdAt: new Date().toISOString(),
+        });
         navigate("/upload-failed", { state: resultState });
       }
     } catch (err) {

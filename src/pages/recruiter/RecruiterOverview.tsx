@@ -1,69 +1,35 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { getCertificates, StoredCertificate } from "@/utils/certificateStorage";
 import { useAuth } from "@/hooks/useAuth";
 import {
   FileText,
-  Users,
   Award,
   CheckCircle,
   XCircle,
   Clock,
-  Loader2,
   ShieldCheck,
   History,
+  Eye,
 } from "lucide-react";
-
-interface Certificate {
-  id: string;
-  title: string;
-  issuer: string;
-  issue_date: string | null;
-  verification_status: string;
-  user_id: string;
-  profile?: { full_name: string | null };
-}
+import { Button } from "@/components/ui/button";
 
 const RecruiterOverview = () => {
   const { user } = useAuth();
   const userName = user?.email?.split("@")[0] || "there";
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const [certificates, setCertificates] = useState<StoredCertificate[]>([]);
 
   useEffect(() => {
-    fetchCertificates();
+    setCertificates(getCertificates());
   }, []);
-
-  const fetchCertificates = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("certificates")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        const userIds = [...new Set(data.map(c => c.user_id))];
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, full_name")
-          .in("user_id", userIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-        setCertificates(data.map(c => ({ ...c, profile: profileMap.get(c.user_id) || { full_name: null } })));
-      }
-    } catch (err) {
-      console.error("Error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const stats = {
     total: certificates.length,
-    verified: certificates.filter(c => c.verification_status === "verified").length,
-    pending: certificates.filter(c => c.verification_status === "pending").length,
-    failed: certificates.filter(c => c.verification_status === "failed").length,
+    verified: certificates.filter(c => c.status === "Verified").length,
+    pending: certificates.filter(c => c.status === "Pending").length,
+    failed: certificates.filter(c => c.status === "Failed").length,
   };
 
   return (
@@ -150,11 +116,7 @@ const RecruiterOverview = () => {
       </div>
 
       {/* Recent Certificates */}
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      ) : certificates.length > 0 && (
+      {certificates.length > 0 && (
         <div>
           <h2 className="font-display text-lg font-bold text-foreground mb-4">Recent Certificates</h2>
           <div className="space-y-3">
@@ -163,13 +125,23 @@ const RecruiterOverview = () => {
                 <div className="flex items-center gap-3">
                   <Award className="w-5 h-5 text-primary" />
                   <div>
-                    <p className="font-medium text-foreground text-sm">{cert.title}</p>
-                    <p className="text-xs text-muted-foreground">{cert.issuer}</p>
+                    <p className="font-medium text-foreground text-sm">{cert.degree}</p>
+                    <p className="text-xs text-muted-foreground">{cert.institution}</p>
                   </div>
                 </div>
-                <Badge className={cert.verification_status === "verified" ? "bg-success/10 text-success border-success/20" : cert.verification_status === "failed" ? "bg-destructive/10 text-destructive border-destructive/20" : "bg-warning/10 text-warning border-warning/20"}>
-                  {cert.verification_status}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge className={cert.status === "Verified" ? "bg-success/10 text-success border-success/20" : cert.status === "Failed" ? "bg-destructive/10 text-destructive border-destructive/20" : "bg-warning/10 text-warning border-warning/20"}>
+                    {cert.status}
+                  </Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/certificate/${cert.id}`)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
