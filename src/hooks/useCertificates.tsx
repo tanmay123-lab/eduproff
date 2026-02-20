@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import {
+  getAllLSCertificates,
+  saveLSCertificate,
+  deleteLSCertificate as deleteFromLS,
+} from "@/lib/certificates";
 
 export interface Certificate {
   id: string;
@@ -37,9 +42,15 @@ export const useCertificates = () => {
         .order("created_at", { ascending: false });
 
       if (fetchError) throw fetchError;
-      setCertificates((data as Certificate[]) || []);
+      const certs = (data as Certificate[]) || [];
+      setCertificates(certs);
+      // Persist to localStorage so both dashboards can access them
+      certs.forEach((c) => saveLSCertificate(c));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch certificates");
+      // Fall back to localStorage when Supabase is unavailable
+      const lsCerts = getAllLSCertificates().filter((c) => c.user_id === user.id);
+      setCertificates(lsCerts as Certificate[]);
     } finally {
       setLoading(false);
     }
@@ -75,6 +86,9 @@ export const useCertificates = () => {
 
       if (insertError) throw insertError;
       
+      // Save to localStorage
+      saveLSCertificate(data as Certificate);
+      
       // Refresh the list
       await fetchCertificates();
       
@@ -103,7 +117,7 @@ export const useCertificates = () => {
 
       if (updateError) throw updateError;
       
-      // Refresh the list
+      // Refresh the list (fetchCertificates will sync localStorage)
       await fetchCertificates();
       
       return { error: null };
@@ -122,6 +136,9 @@ export const useCertificates = () => {
         .eq("id", certificateId);
 
       if (deleteError) throw deleteError;
+      
+      // Remove from localStorage
+      deleteFromLS(certificateId);
       
       // Refresh the list
       await fetchCertificates();
