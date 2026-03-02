@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { CertificateCard } from "@/components/student/CertificateCard";
 import { NotificationsPanel } from "@/components/student/NotificationsPanel";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { logActivity } from "@/utils/adminStorage";
 
 const Student = () => {
   const { user } = useAuth();
@@ -18,6 +19,13 @@ const Student = () => {
   const [myCertificateId, setMyCertificateId] = useState("");
   const userName = user?.email?.split("@")[0] || "Achiever";
   const isEmailVerified = !!user?.email_confirmed_at;
+
+  // Log certificate view when user visits dashboard
+  useEffect(() => {
+    if (user?.id) {
+      logActivity("certificate_viewed", user.id, user.email ?? "", "Visited student dashboard");
+    }
+  }, [user?.id]);
 
   const handleResendVerification = async () => {
     if (!user?.email) return;

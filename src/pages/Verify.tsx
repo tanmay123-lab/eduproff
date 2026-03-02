@@ -9,6 +9,7 @@ import { useCertificates } from "@/hooks/useCertificates";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logActivity, upsertStoredCertificate } from "@/utils/adminStorage";
 
 const ALLOWED_TYPES = ['application/pdf'];
 const ALLOWED_EXTENSIONS = ['pdf'];
@@ -103,6 +104,21 @@ const Verify = () => {
       if (fileUrl) {
         await supabase.from('certificates').update({ certificate_url: fileUrl }).eq('id', certificate.id);
       }
+
+      const finalStatus = verificationResult.status === "verified" ? "verified" : "failed";
+
+      // Log to localStorage for admin
+      upsertStoredCertificate({
+        id: certificate.id,
+        title: verificationResult.course_name || title,
+        issuer: verificationResult.student_name || issuer,
+        userId: user!.id,
+        userEmail: user!.email ?? undefined,
+        status: finalStatus,
+        uploadedAt: new Date().toISOString(),
+      });
+      logActivity("certificate_uploaded", user!.id, user!.email ?? "", `Certificate: ${title}`);
+      logActivity("verification_happened", user!.id, user!.email ?? "", `Status: ${finalStatus}`);
 
       const resultState = {
         trustScore: verificationResult.trust_score,

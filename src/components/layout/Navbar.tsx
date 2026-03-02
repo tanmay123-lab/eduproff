@@ -40,14 +40,25 @@ const institutionLinks = [
   { href: "/institution/certificates", label: "Issued Certs" },
 ];
 
+const adminLinks = [
+  { href: "/", label: "Home" },
+  { href: "/admin", label: "Admin Dashboard" },
+];
+
 export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const { user, role, signOut } = useAuth();
 
-  const navLinks = user 
-    ? (role === "recruiter" ? recruiterLinks : role === "institution" ? institutionLinks : candidateLinks)
+  const navLinks = user
+    ? role === "admin"
+      ? adminLinks
+      : role === "recruiter"
+      ? recruiterLinks
+      : role === "institution"
+      ? institutionLinks
+      : candidateLinks
     : publicLinks;
 
   const handleSignOut = async () => {
@@ -100,7 +111,7 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link to={role === "recruiter" ? "/recruiter" : role === "institution" ? "/institution" : "/student"} className="cursor-pointer">
+                    <Link to={role === "admin" ? "/admin" : role === "recruiter" ? "/recruiter" : role === "institution" ? "/institution" : "/student"} className="cursor-pointer">
                       <User className="w-4 h-4 mr-2" />
                       Dashboard
                     </Link>

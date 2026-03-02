@@ -2,8 +2,9 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { isAdminEmail, logActivity, upsertStoredUser } from "@/utils/adminStorage";
 
-type UserRole = "candidate" | "recruiter" | "institution" | null;
+export type UserRole = "candidate" | "recruiter" | "institution" | "admin" | null;
 
 interface AuthContextType {
   user: User | null;
@@ -14,6 +15,11 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
+
+const resolveRole = (supabaseRole: UserRole, email: string | undefined): UserRole => {
+  if (email && isAdminEmail(email)) return "admin";
+  return supabaseRole;
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -53,7 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Defer role fetching with setTimeout to avoid deadlock
         if (session?.user) {
           setTimeout(() => {
-            fetchUserRole(session.user.id).then(setRole);
+            fetchUserRole(session.user.id).then((supabaseRole) => {
+              setRole(resolveRole(supabaseRole, session.user.email));
+            });
           }, 0);
         } else {
           setRole(null);
@@ -67,7 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserRole(session.user.id).then(setRole);
+        fetchUserRole(session.user.id).then((supabaseRole) => {
+          setRole(resolveRole(supabaseRole, session.user?.email));
+        });
       }
       setLoading(false);
     });
@@ -103,6 +113,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (profileError) {
           console.error("Error creating profile:", profileError);
         }
+
+        // Log registration activity and store user in localStorage
+        upsertStoredUser({
+          id: data.user.id,
+          email: data.user.email ?? email,
+          role: selectedRole,
+          fullName,
+          registeredAt: new Date().toISOString(),
+        });
+        logActivity("user_registered", data.user.id, data.user.email ?? email, `Role: ${selectedRole}`);
 
         // Call secure edge function to assign role
         // The trigger creates 'candidate' by default, this updates to user's selection
