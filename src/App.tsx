@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import Student from "./pages/Student";
 import Verify from "./pages/Verify";
 import GenerateCV from "./pages/GenerateCV";
@@ -48,6 +49,14 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Auth />} />
               <Route path="/signup" element={<Auth />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <Admin />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/demo" element={<Demo />} />
               <Route path="/about" element={<About />} />
