@@ -32,6 +32,8 @@ import RecruiterDashboard from "./pages/recruiter/RecruiterDashboard";
 import RecruiterOverview from "./pages/recruiter/RecruiterOverview";
 import RecruiterVerify from "./pages/recruiter/RecruiterVerify";
 import RecruiterHistory from "./pages/recruiter/RecruiterHistory";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -119,6 +121,8 @@ const App = () => (
                 <Route path="logs" element={<VerificationLogs />} />
                 <Route path="analytics" element={<InstitutionAnalytics />} />
               </Route>
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/support" element={<Support />} />
               <Route path="/careers" element={<Careers />} />
               <Route path="/check" element={<PublicVerify />} />
