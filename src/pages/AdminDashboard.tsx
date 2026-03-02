@@ -4,6 +4,7 @@ import { isAdminAuthenticated, adminLogout } from "@/lib/adminAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { Users, FileText, ShieldCheck, LogOut, Loader2 } from "lucide-react";
 
 interface Stats {
@@ -14,6 +15,7 @@ interface Stats {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
     totalCertificates: 0,
@@ -34,6 +36,15 @@ const AdminDashboard = () => {
         supabase.from("verification_logs").select("*", { count: "exact", head: true }),
       ]);
 
+      const errors = [usersRes.error, certsRes.error, verifRes.error].filter(Boolean);
+      if (errors.length > 0) {
+        toast({
+          title: "Error loading stats",
+          description: "Some statistics could not be loaded.",
+          variant: "destructive",
+        });
+      }
+
       setStats({
         totalUsers: usersRes.count ?? 0,
         totalCertificates: certsRes.count ?? 0,
@@ -43,7 +54,7 @@ const AdminDashboard = () => {
     };
 
     fetchStats();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleLogout = () => {
     adminLogout();
