@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { getAllLSCertificates } from "@/lib/certificates";
 import {
   FileText,
   Users,
@@ -37,6 +38,9 @@ const RecruiterOverview = () => {
 
   const fetchCertificates = async () => {
     try {
+      // Load localStorage certificates first (offline-capable)
+      const lsCerts = getAllLSCertificates();
+
       const { data, error } = await supabase
         .from("certificates")
         .select("*")
@@ -50,10 +54,24 @@ const RecruiterOverview = () => {
           .in("user_id", userIds);
 
         const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-        setCertificates(data.map(c => ({ ...c, profile: profileMap.get(c.user_id) || { full_name: null } })));
+        const supabaseCerts = data.map(c => ({ ...c, profile: profileMap.get(c.user_id) || { full_name: null } }));
+
+        // Merge: add any localStorage-only certificates not yet in Supabase
+        const supabaseIds = new Set(data.map(c => c.id));
+        const onlyLS = lsCerts
+          .filter(c => !supabaseIds.has(c.id))
+          .map(c => ({ ...c, profile: { full_name: null } }));
+
+        setCertificates([...supabaseCerts, ...onlyLS]);
+      } else {
+        // Supabase unavailable — show localStorage data
+        setCertificates(lsCerts.map(c => ({ ...c, profile: { full_name: null } })));
       }
     } catch (err) {
       console.error("Error:", err);
+      // Fall back to localStorage
+      const lsCerts = getAllLSCertificates();
+      setCertificates(lsCerts.map(c => ({ ...c, profile: { full_name: null } })));
     } finally {
       setLoading(false);
     }

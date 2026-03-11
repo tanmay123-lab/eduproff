@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Award, Building2, Calendar, FileCheck, Clock, XCircle, Trash2, Eye, Copy, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Certificate } from "@/hooks/useCertificates";
@@ -175,8 +176,10 @@ export const CertificateCard = ({ certificate, onDelete }: CertificateCardProps)
 
         <div className="flex-1 min-w-0">
           <h3 className="font-display font-semibold text-foreground mb-1 truncate">
-            {certificate.title}
-          </h3>
+              <Link to={`/certificate/${certificate.id}`} className="hover:text-primary transition-colors">
+                {certificate.title}
+              </Link>
+            </h3>
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Building2 className="w-4 h-4" />
