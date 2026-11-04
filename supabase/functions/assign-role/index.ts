@@ -88,19 +88,18 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Verify the JWT token
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    // Verify the JWT token by fetching the authenticated user
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     
-    if (claimsError || !claimsData?.claims) {
-      console.error("Authentication failed:", claimsError);
+    if (userError || !user) {
+      console.error("Authentication failed:", userError);
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = user.id;
     console.log(`Processing role assignment for user: ${userId}`);
 
     // Use service role for rate limiting and updates

@@ -228,13 +228,13 @@ const Index = () => {
             {workflowSteps.map((step, index) => (
               <div
                 key={step.title}
-                className="relative bg-card rounded-2xl p-6 shadow-card border border-border text-center hover:shadow-medium transition-shadow"
+                className="group relative bg-card rounded-2xl p-6 shadow-card border border-border text-center hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
               >
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs group-hover:scale-110 transition-transform duration-300">
                   {index + 1}
                 </div>
 
-                <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mx-auto mb-4 mt-2">
+                <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mx-auto mb-4 mt-2 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
                   <step.icon className="w-6 h-6 text-primary" />
                 </div>
 
@@ -275,9 +275,9 @@ const Index = () => {
             {audiences.map((audience) => (
               <div
                 key={audience.title}
-                className="bg-card rounded-2xl p-8 shadow-card border border-border hover:shadow-medium transition-shadow"
+                className="group bg-card rounded-2xl p-8 shadow-card border border-border hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                   <audience.icon className="w-6 h-6 text-primary" />
                 </div>
 
@@ -315,9 +315,9 @@ const Index = () => {
             {benefits.map((benefit) => (
               <div
                 key={benefit.title}
-                className="bg-card rounded-2xl p-8 shadow-card border border-border hover:shadow-medium transition-shadow"
+                className="group bg-card rounded-2xl p-8 shadow-card border border-border hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mb-5">
+                <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mb-5 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
                   <benefit.icon className="w-6 h-6 text-primary" />
                 </div>
 
