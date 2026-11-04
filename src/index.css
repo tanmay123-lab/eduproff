@@ -185,6 +185,16 @@
   .glass-card {
     @apply bg-card/80 backdrop-blur-xl border border-border/50;
   }
+
+  /* Reusable hover-lift card effect */
+  .hover-card {
+    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-elevated hover:border-primary/20 cursor-default;
+  }
+
+  /* Icon container that scales on parent hover */
+  .hover-icon-wrap {
+    @apply transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15;
+  }
 }
 
 @layer utilities {
