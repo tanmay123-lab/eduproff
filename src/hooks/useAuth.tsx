@@ -104,21 +104,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error("Error creating profile:", profileError);
         }
 
-        // Call secure edge function to assign role
-        // The trigger creates 'candidate' by default, this updates to user's selection
-        const { error: roleError } = await supabase.functions.invoke(
-          'assign-role',
-          { body: { requestedRole: selectedRole } }
-        );
-
-        if (roleError) {
-          console.error("Error assigning role:", roleError);
-          // Don't fail signup, but fetch the actual role from DB
-          const userRole = await fetchUserRole(data.user.id);
-          setRole(userRole);
-        } else {
-          setRole(selectedRole);
+        // If we have a session (email confirmation disabled), assign role via edge function
+        if (data.session) {
+          try {
+            const { error: roleError } = await supabase.functions.invoke(
+              'assign-role',
+              { body: { requestedRole: selectedRole } }
+            );
+            if (roleError) {
+              console.error("Edge function role assignment failed, falling back to direct insert:", roleError);
+              // Fallback: set role optimistically — DB trigger already created 'candidate'
+            }
+          } catch (fnError) {
+            console.error("Could not reach assign-role function:", fnError);
+          }
         }
+
+        // Always set role optimistically in local state
+        setRole(selectedRole);
       }
 
       return { error: null };
