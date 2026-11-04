@@ -1,9 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabaseUrl = 'https://your-project-ref.supabase.co';
-const supabaseKey = 'your-supabase-key';
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "./supabase/client";
 
 /**
  * Logs a verification attempt to the verification_logs table.
@@ -12,7 +7,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
  * @param {boolean} success - Whether the verification attempt was successful.
  * @param {string} message - Additional message regarding the verification attempt.
  */
-async function logVerificationAttempt(userId, success, message = '') {
+async function logVerificationAttempt(userId: string, success: boolean, message = '') {
     const { data, error } = await supabase
         .from('verification_logs')
         .insert([{ user_id: userId, success, message, created_at: new Date().toISOString() }]);
