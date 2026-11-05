@@ -268,3 +268,4 @@ export const fetchRecruiterTalentPool = async (): Promise<StudentCandidate[]> =>
 
   return DEFAULT_CANDIDATES;
 };
+
