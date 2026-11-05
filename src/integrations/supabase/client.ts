@@ -4,7 +4,7 @@ import type { Database } from './types';
 
 const SUPABASE_URL = 
   import.meta.env.VITE_SUPABASE_URL || 
-  "https://thqtxvffyvmsnxprbyyn.supabase.co";
+  "https://whmugoeeqpcefazonuhk.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY = 
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
