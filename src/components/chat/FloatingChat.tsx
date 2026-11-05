@@ -17,7 +17,7 @@ import { processSafarMessage, ChatMessage, SupportedLanguage } from "@/services/
 export function FloatingChat() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [lang, setLang] = useState<SupportedLanguage>("en");
+  const [lang] = useState<SupportedLanguage>("en");
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -161,26 +161,6 @@ export function FloatingChat() {
             </div>
 
             <div className="flex items-center gap-1.5">
-              {/* Language Switch */}
-              <div className="flex items-center bg-black/20 p-1 rounded-full border border-white/10 text-[10px] font-bold">
-                <button
-                  type="button"
-                  onClick={() => setLang("en")}
-                  className={`px-2.5 py-0.5 rounded-full transition-all duration-200 ${lang === "en" ? "bg-white text-emerald-800 shadow-xs scale-105 font-bold" : "text-white/80 hover:text-white"
-                    }`}
-                >
-                  EN
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLang("hi")}
-                  className={`px-2.5 py-0.5 rounded-full transition-all duration-200 ${lang === "hi" ? "bg-white text-emerald-800 shadow-xs scale-105 font-bold" : "text-white/80 hover:text-white"
-                    }`}
-                >
-                  हिंदी
-                </button>
-              </div>
-
               {/* Reset History */}
               <button
                 type="button"
