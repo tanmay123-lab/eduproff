@@ -59,9 +59,9 @@ const Careers = () => {
       <section className="py-20 bg-gradient-to-b from-secondary/50 to-background">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
               <Rocket className="w-4 h-4" />
-              We're Hiring!
+              We Will Be Hiring Soon!
             </div>
             
             <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-6">
@@ -69,11 +69,11 @@ const Careers = () => {
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
               At EduProof, we're on a mission to revolutionize credential verification. 
-              We're looking for passionate, creative people who want to make a real impact in education.
+              We'll be opening new roles soon for passionate, creative people who want to make a real impact in education.
             </p>
-            <Button variant="hero" size="xl" asChild>
+            <Button variant="hero" size="xl" className="rounded-full" asChild>
               <a href="#positions">
-                View Open Positions
+                View Upcoming Roles
                 <ArrowRight className="w-5 h-5" />
               </a>
             </Button>
@@ -145,15 +145,15 @@ const Careers = () => {
         </div>
       </section>
 
-      {/* Open Positions */}
+      {/* Upcoming Positions */}
       <section id="positions" className="py-16 pb-24">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="font-display text-3xl font-bold text-foreground mb-4">
-              Open Positions
+              We Will Be Hiring Soon
             </h2>
             <p className="text-muted-foreground">
-              Find your next adventure with us
+              We are preparing to expand our team. Check out the roles opening up soon!
             </p>
           </div>
 
@@ -161,13 +161,18 @@ const Careers = () => {
             {openPositions.map((position) => (
               <div
                 key={position.id}
-                className="bg-card rounded-xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
+                className="bg-card rounded-3xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <div className="flex-1">
-                    <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                      {position.title}
-                    </h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {position.title}
+                      </h3>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                        Hiring Soon
+                      </span>
+                    </div>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
@@ -183,9 +188,11 @@ const Careers = () => {
                       </span>
                     </div>
                   </div>
-                  <Button variant="outline" className="flex-shrink-0">
-                    Apply Now
-                    <ArrowRight className="w-4 h-4" />
+                  <Button variant="outline" className="flex-shrink-0 rounded-full" asChild>
+                    <Link to="/support">
+                      Express Interest
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -194,14 +201,14 @@ const Careers = () => {
 
           {/* Don't see a fit */}
           <div className="max-w-3xl mx-auto mt-12 text-center">
-            <div className="bg-primary/5 rounded-2xl p-8 border border-primary/20">
+            <div className="bg-primary/5 rounded-3xl p-8 border border-primary/20">
               <h3 className="font-display text-xl font-semibold text-foreground mb-3">
                 Don't see the right role?
               </h3>
               <p className="text-muted-foreground mb-6">
                 We're always looking for talented people. Send us your resume and tell us how you can contribute!
               </p>
-              <Button variant="hero" asChild>
+              <Button variant="hero" className="rounded-full" asChild>
                 <Link to="/support">Get in Touch</Link>
               </Button>
             </div>
