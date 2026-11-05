@@ -207,9 +207,9 @@ const GenerateCV = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             {/* Verified Certificates Summary */}
-            <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 mb-8">
+            <div className="bg-card rounded-3xl p-6 shadow-soft border border-border/50 mb-8">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-success/10 flex items-center justify-center">
                   <Award className="w-5 h-5 text-success" />
                 </div>
                 <div>
@@ -231,7 +231,7 @@ const GenerateCV = () => {
                   {verifiedCerts.map((cert) => (
                     <div 
                       key={cert.id} 
-                      className="flex items-center gap-3 p-3 rounded-lg bg-success/5 border border-success/20"
+                      className="flex items-center gap-3 p-3.5 rounded-2xl bg-success/5 border border-success/20"
                     >
                       <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -246,7 +246,7 @@ const GenerateCV = () => {
               ) : (
                 <div className="text-center py-6 text-muted-foreground">
                   <p className="mb-3">No verified certificates yet</p>
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" className="rounded-full" asChild>
                     <Link to="/verify">Upload Certificate</Link>
                   </Button>
                 </div>
@@ -254,7 +254,7 @@ const GenerateCV = () => {
             </div>
 
             {/* CV Form */}
-            <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+            <div className="bg-card rounded-3xl p-6 shadow-soft border border-border/50">
               <h3 className="font-display text-lg font-semibold text-foreground mb-6">
                 Your Information
               </h3>

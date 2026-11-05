@@ -160,14 +160,14 @@ const Index = () => {
           </div>
 
           <div className="max-w-lg mx-auto">
-            <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
+            <div className="bg-card rounded-3xl p-8 shadow-card border border-border">
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">Certificate</p>
                   <p className="font-display font-semibold text-foreground text-lg">AWS Solutions Architect</p>
                   <p className="text-sm text-muted-foreground">Amazon Web Services</p>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-success/10 flex items-center justify-center flex-shrink-0">
                   <CheckCircle className="w-6 h-6 text-success" />
                 </div>
               </div>
@@ -177,20 +177,20 @@ const Index = () => {
                   <span className="text-sm text-muted-foreground">Trust Score</span>
                   <span className="font-display font-bold text-lg text-success">100%</span>
                 </div>
-                <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-secondary rounded-full overflow-hidden">
                   <div className="h-full bg-success rounded-full" style={{ width: '100%' }} />
                 </div>
               </div>
 
               <div className="space-y-2 mb-6">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-success/5 border border-success/10">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-success/5 border border-success/10">
                   <div className="flex items-center gap-2.5">
                     <FileCheck className="w-4 h-4 text-success" />
                     <span className="text-sm font-medium text-foreground">Certificate ID Lookup</span>
                   </div>
                   <span className="text-xs font-semibold text-success bg-success/10 px-2.5 py-1 rounded-full">PASSED</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-success/5 border border-success/10">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-success/5 border border-success/10">
                   <div className="flex items-center gap-2.5">
                     <Search className="w-4 h-4 text-success" />
                     <span className="text-sm font-medium text-foreground">Database Match</span>
@@ -199,7 +199,7 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
                 <div className="flex items-start gap-3">
                   <Shield className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -228,13 +228,13 @@ const Index = () => {
             {workflowSteps.map((step, index) => (
               <div
                 key={step.title}
-                className="group relative bg-card rounded-2xl p-6 shadow-card border border-border text-center hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
+                className="group relative bg-card rounded-3xl p-7 shadow-card border border-border text-center hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
               >
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs group-hover:scale-110 transition-transform duration-300">
                   {index + 1}
                 </div>
 
-                <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mx-auto mb-4 mt-2 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
+                <div className="w-12 h-12 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto mb-4 mt-2 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
                   <step.icon className="w-6 h-6 text-primary" />
                 </div>
 
@@ -275,9 +275,9 @@ const Index = () => {
             {audiences.map((audience) => (
               <div
                 key={audience.title}
-                className="group bg-card rounded-2xl p-8 shadow-card border border-border hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
+                className="group bg-card rounded-3xl p-8 shadow-card border border-border hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                   <audience.icon className="w-6 h-6 text-primary" />
                 </div>
 
@@ -287,7 +287,7 @@ const Index = () => {
                 <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                   {audience.description}
                 </p>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" className="rounded-full" asChild>
                   <Link to={audience.to}>
                     {audience.cta}
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -315,9 +315,9 @@ const Index = () => {
             {benefits.map((benefit) => (
               <div
                 key={benefit.title}
-                className="group bg-card rounded-2xl p-8 shadow-card border border-border hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
+                className="group bg-card rounded-3xl p-8 shadow-card border border-border hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mb-5 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
+                <div className="w-12 h-12 rounded-2xl bg-primary/8 flex items-center justify-center mb-5 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
                   <benefit.icon className="w-6 h-6 text-primary" />
                 </div>
 

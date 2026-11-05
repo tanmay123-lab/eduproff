@@ -136,19 +136,19 @@ export function FloatingChat() {
 
       {/* Floating Chat Modal */}
       {isOpen && (
-        <div className="fixed bottom-6 right-4 sm:right-6 w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[85vh] bg-card text-card-foreground rounded-2xl shadow-elevated flex flex-col z-50 border border-border overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed bottom-6 right-4 sm:right-6 w-[390px] max-w-[calc(100vw-2rem)] h-[570px] max-h-[85vh] bg-card text-card-foreground rounded-3xl shadow-elevated flex flex-col z-50 border border-border overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600 via-teal-700 to-emerald-700 text-white px-4 py-3.5 flex items-center justify-between shadow-sm">
+          <div className="bg-gradient-to-r from-emerald-600 via-teal-700 to-emerald-700 text-white px-5 py-4 flex items-center justify-between shadow-sm rounded-t-3xl">
             <div className="flex items-center gap-3">
-              <div className="relative w-9 h-9 rounded-full bg-white/15 flex items-center justify-center border border-white/20">
+              <div className="relative w-10 h-10 rounded-full bg-white/15 flex items-center justify-center border border-white/20">
                 <Bot className="w-5 h-5 text-white" />
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-300 border-2 border-emerald-800" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-display font-bold text-sm tracking-tight">Safar</h3>
-                  <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-medium">AI Guide</span>
+                  <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-medium">AI Guide</span>
                 </div>
                 <p className="text-[11px] text-white/80">EduProof Credential Assistant</p>
               </div>
@@ -156,11 +156,11 @@ export function FloatingChat() {
 
             <div className="flex items-center gap-1.5">
               {/* Language Switch */}
-              <div className="flex items-center bg-black/20 p-0.5 rounded-lg border border-white/10 text-[10px] font-bold">
+              <div className="flex items-center bg-black/20 p-1 rounded-full border border-white/10 text-[10px] font-bold">
                 <button
                   type="button"
                   onClick={() => setLang("en")}
-                  className={`px-2 py-0.5 rounded transition-all ${lang === "en" ? "bg-white text-emerald-800 shadow-xs" : "text-white/80 hover:text-white"
+                  className={`px-2.5 py-0.5 rounded-full transition-all ${lang === "en" ? "bg-white text-emerald-800 shadow-xs" : "text-white/80 hover:text-white"
                     }`}
                 >
                   EN
@@ -168,7 +168,7 @@ export function FloatingChat() {
                 <button
                   type="button"
                   onClick={() => setLang("hi")}
-                  className={`px-2 py-0.5 rounded transition-all ${lang === "hi" ? "bg-white text-emerald-800 shadow-xs" : "text-white/80 hover:text-white"
+                  className={`px-2.5 py-0.5 rounded-full transition-all ${lang === "hi" ? "bg-white text-emerald-800 shadow-xs" : "text-white/80 hover:text-white"
                     }`}
                 >
                   हिंदी
@@ -180,7 +180,7 @@ export function FloatingChat() {
                 type="button"
                 onClick={handleResetChat}
                 title="Restart Chat"
-                className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -190,7 +190,7 @@ export function FloatingChat() {
                 type="button"
                 onClick={() => setIsOpen(false)}
                 title="Close Chat"
-                className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -198,13 +198,13 @@ export function FloatingChat() {
           </div>
 
           {/* Quick Action Chips */}
-          <div className="bg-secondary/40 border-b border-border/60 px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+          <div className="bg-secondary/40 border-b border-border/60 px-4 py-2.5 flex items-center gap-2 overflow-x-auto scrollbar-none">
             {QUICK_PROMPTS.map((chip, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleSend(chip.query)}
-                className="whitespace-nowrap px-2.5 py-1 rounded-full bg-background hover:bg-primary/10 hover:text-primary hover:border-primary/30 border border-border text-[11px] font-medium transition-all duration-150 flex-shrink-0"
+                className="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-background hover:bg-primary/10 hover:text-primary hover:border-primary/30 border border-border text-[11px] font-medium transition-all duration-150 flex-shrink-0"
               >
                 {lang === "hi" ? chip.labelHi : chip.labelEn}
               </button>
@@ -219,16 +219,16 @@ export function FloatingChat() {
                 className={`flex gap-2.5 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.sender === "bot" && (
-                  <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <ShieldCheck className="w-4 h-4 text-primary" />
                   </div>
                 )}
 
                 <div className={`max-w-[85%] space-y-2 ${msg.sender === "user" ? "items-end" : "items-start"}`}>
                   <div
-                    className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-xs whitespace-pre-line ${msg.sender === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-xs font-medium"
-                      : "bg-card border border-border text-foreground rounded-bl-xs"
+                    className={`p-4 rounded-3xl text-xs leading-relaxed shadow-xs whitespace-pre-line ${msg.sender === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-sm font-medium"
+                      : "bg-card border border-border text-foreground rounded-bl-sm"
                       }`}
                   >
                     {msg.text}
@@ -238,7 +238,7 @@ export function FloatingChat() {
                     <button
                       type="button"
                       onClick={() => handleActionClick(msg.action!.to)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition-all duration-200"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition-all duration-200"
                     >
                       <FileCheck2 className="w-3.5 h-3.5" />
                       <span>{msg.action.label}</span>
@@ -246,13 +246,13 @@ export function FloatingChat() {
                     </button>
                   )}
 
-                  <span className="block text-[9px] text-muted-foreground px-1">
+                  <span className="block text-[9px] text-muted-foreground px-2">
                     {msg.timestamp}
                   </span>
                 </div>
 
                 {msg.sender === "user" && (
-                  <div className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
                     <UserIcon className="w-3.5 h-3.5 text-muted-foreground" />
                   </div>
                 )}
@@ -260,7 +260,7 @@ export function FloatingChat() {
             ))}
 
             {isLoading && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-card border border-border p-3 rounded-2xl w-fit">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-card border border-border p-3.5 rounded-3xl w-fit">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"></span>
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0.2s]"></span>
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0.4s]"></span>
@@ -277,7 +277,7 @@ export function FloatingChat() {
               e.preventDefault();
               handleSend();
             }}
-            className="p-3 bg-card border-t border-border flex items-center gap-2"
+            className="p-3.5 bg-card border-t border-border flex items-center gap-2 rounded-b-3xl"
           >
             <input
               ref={inputRef}
@@ -290,13 +290,13 @@ export function FloatingChat() {
                   : "Ask Safar or paste Certificate ID..."
               }
               disabled={isLoading}
-              className="flex-1 bg-secondary/60 border border-border rounded-xl px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+              className="flex-1 bg-secondary/60 border border-border rounded-full px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
             />
             <button
               type="submit"
               disabled={!inputValue.trim() || isLoading}
               aria-label="Send Message"
-              className="p-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all duration-200 flex-shrink-0"
+              className="p-2.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all duration-200 flex-shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>

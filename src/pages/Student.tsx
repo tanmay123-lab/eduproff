@@ -126,9 +126,9 @@ const Student = () => {
           <div className="grid sm:grid-cols-3 gap-6">
             <Link
               to="/verify"
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-elevated hover:border-primary/40 hover:-translate-y-2 transition-all duration-300 group"
+              className="bg-card rounded-3xl p-6 shadow-soft border border-border/50 hover:shadow-elevated hover:border-primary/40 hover:-translate-y-2 transition-all duration-300 group"
             >
-              <div className="w-14 h-14 rounded-xl gradient-hero flex items-center justify-center mb-4 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
+              <div className="w-14 h-14 rounded-2xl gradient-hero flex items-center justify-center mb-4 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
                 <Upload className="w-7 h-7 text-primary-foreground" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
@@ -141,9 +141,9 @@ const Student = () => {
 
             <Link
               to="#certificates"
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-elevated hover:border-primary/40 hover:-translate-y-2 transition-all duration-300 group"
+              className="bg-card rounded-3xl p-6 shadow-soft border border-border/50 hover:shadow-elevated hover:border-primary/40 hover:-translate-y-2 transition-all duration-300 group"
             >
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
                 <FileCheck className="w-7 h-7 text-primary" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
@@ -156,9 +156,9 @@ const Student = () => {
 
             <Link
               to="/generate-cv"
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-elevated hover:border-accent/40 hover:-translate-y-2 transition-all duration-300 group"
+              className="bg-card rounded-3xl p-6 shadow-soft border border-border/50 hover:shadow-elevated hover:border-accent/40 hover:-translate-y-2 transition-all duration-300 group"
             >
-              <div className="w-14 h-14 rounded-xl gradient-accent flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 rounded-2xl gradient-accent flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <FileText className="w-7 h-7 text-accent-foreground" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">
@@ -175,7 +175,7 @@ const Student = () => {
       {/* My Certificate ID Section */}
       <section className="py-8">
         <div className="container mx-auto px-4">
-          <div className="max-w-xl bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+          <div className="max-w-xl bg-card rounded-3xl p-7 shadow-soft border border-border/50">
             <h3 className="font-display text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
               <Hash className="w-5 h-5 text-primary" />
               My Certificate ID
@@ -238,7 +238,7 @@ const Student = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-secondary/30 rounded-2xl">
+            <div className="text-center py-16 bg-secondary/30 rounded-3xl">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <FileCheck className="w-8 h-8 text-muted-foreground" />
               </div>

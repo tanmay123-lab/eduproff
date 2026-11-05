@@ -79,9 +79,9 @@ const RecruiterOverview = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-card rounded-xl p-5 shadow-soft border border-border/50">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <FileText className="w-5 h-5 text-primary" />
             </div>
             <div>
@@ -90,9 +90,9 @@ const RecruiterOverview = () => {
             </div>
           </div>
         </div>
-        <div className="bg-card rounded-xl p-5 shadow-soft border border-border/50">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
               <CheckCircle className="w-5 h-5 text-success" />
             </div>
             <div>
@@ -101,9 +101,9 @@ const RecruiterOverview = () => {
             </div>
           </div>
         </div>
-        <div className="bg-card rounded-xl p-5 shadow-soft border border-border/50">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
               <Clock className="w-5 h-5 text-warning" />
             </div>
             <div>
@@ -112,9 +112,9 @@ const RecruiterOverview = () => {
             </div>
           </div>
         </div>
-        <div className="bg-card rounded-xl p-5 shadow-soft border border-border/50">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
               <XCircle className="w-5 h-5 text-destructive" />
             </div>
             <div>
@@ -129,9 +129,9 @@ const RecruiterOverview = () => {
       <div className="grid sm:grid-cols-2 gap-4 mb-8">
         <Link
           to="/recruiter/verify"
-          className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
+          className="bg-card rounded-3xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
         >
-          <div className="w-12 h-12 rounded-xl gradient-hero flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 rounded-2xl gradient-hero flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
             <ShieldCheck className="w-6 h-6 text-primary-foreground" />
           </div>
           <h3 className="font-display text-lg font-semibold text-foreground mb-1">Verify Certificate</h3>
@@ -139,9 +139,9 @@ const RecruiterOverview = () => {
         </Link>
         <Link
           to="/recruiter/history"
-          className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
+          className="bg-card rounded-3xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
         >
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
             <History className="w-6 h-6 text-primary" />
           </div>
           <h3 className="font-display text-lg font-semibold text-foreground mb-1">Verification History</h3>
@@ -159,7 +159,7 @@ const RecruiterOverview = () => {
           <h2 className="font-display text-lg font-bold text-foreground mb-4">Recent Certificates</h2>
           <div className="space-y-3">
             {certificates.slice(0, 5).map(cert => (
-              <div key={cert.id} className="bg-card rounded-xl p-4 shadow-soft border border-border/50 flex items-center justify-between">
+              <div key={cert.id} className="bg-card rounded-2xl p-4 shadow-soft border border-border/50 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Award className="w-5 h-5 text-primary" />
                   <div>

@@ -61,7 +61,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:scale-110 group-hover:shadow-md transition-all duration-200">
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center group-hover:scale-110 group-hover:shadow-md transition-all duration-200">
               <Shield className="w-4.5 h-4.5 text-primary-foreground" />
             </div>
             <span className="font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors duration-200">
@@ -75,15 +75,15 @@ export function Navbar() {
               <Link
                 key={link.href}
                 to={link.href}
-                className={`relative px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   location.pathname === link.href
-                    ? "bg-primary/8 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary hover:scale-[1.03]"
+                    ? "bg-primary/10 text-primary shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/80 hover:scale-[1.03]"
                 }`}
               >
                 {link.label}
                 {location.pathname === link.href && (
-                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-primary rounded-full" />
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-primary rounded-full" />
                 )}
               </Link>
             ))}
@@ -94,14 +94,14 @@ export function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button variant="outline" size="sm" className="gap-2 rounded-full px-4">
                     <User className="w-4 h-4" />
                     <span className="max-w-[120px] truncate">
                       {user.email?.split("@")[0]}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-48 rounded-2xl p-1.5">
                   <DropdownMenuItem asChild>
                     <Link to={role === "recruiter" ? "/recruiter" : role === "institution" ? "/institution" : "/student"} className="cursor-pointer">
                       <User className="w-4 h-4 mr-2" />

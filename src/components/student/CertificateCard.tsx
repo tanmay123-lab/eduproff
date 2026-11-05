@@ -112,13 +112,13 @@ export const CertificateCard = ({ certificate, onDelete }: CertificateCardProps)
   }, [certificate.certificate_url]);
 
   return (
-    <div className="group bg-card rounded-2xl p-6 shadow-soft border border-border/50 transition-all duration-300 hover:shadow-elevated hover:-translate-y-2 hover:border-primary/40">
+    <div className="group bg-card rounded-3xl p-6 shadow-soft border border-border/50 transition-all duration-300 hover:shadow-elevated hover:-translate-y-2 hover:border-primary/40">
       <div className="flex items-center gap-6">
         {/* Thumbnail or Icon */}
         {certificate.certificate_url && isImage ? (
           <Dialog open={showPreview} onOpenChange={setShowPreview}>
             <DialogTrigger asChild>
-              <button className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-border hover:border-primary transition-colors cursor-pointer">
+              <button className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 border border-border hover:border-primary transition-colors cursor-pointer">
                 {loadingUrl ? (
                   <div className="w-full h-full flex items-center justify-center bg-muted">
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -156,7 +156,7 @@ export const CertificateCard = ({ certificate, onDelete }: CertificateCardProps)
             </DialogContent>
           </Dialog>
         ) : (
-          <div className={`w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 ${
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ${
             certificate.verification_status === "verified" 
               ? "bg-success/10" 
               : certificate.verification_status === "pending"

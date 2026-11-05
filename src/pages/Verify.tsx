@@ -149,7 +149,7 @@ const Verify = () => {
           <div className="max-w-lg mx-auto">
             {/* Upload Area */}
             <div
-              className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all ${
+              className={`relative border-2 border-dashed rounded-3xl p-10 text-center transition-all ${
                 isDragging
                   ? "border-primary bg-primary/5"
                   : file
@@ -168,20 +168,20 @@ const Verify = () => {
               />
               {file ? (
                 <div className="space-y-3">
-                  <div className="w-14 h-14 rounded-xl bg-success/10 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center mx-auto">
                     <FileCheck className="w-7 h-7 text-success" />
                   </div>
                   <div>
                     <p className="font-medium text-foreground text-sm">{file.name}</p>
                     <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setFile(null); }}>
+                  <Button variant="ghost" size="sm" className="rounded-full" onClick={(e) => { e.stopPropagation(); setFile(null); }}>
                     Change file
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="w-14 h-14 rounded-xl bg-primary/8 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto">
                     <Upload className="w-7 h-7 text-primary" />
                   </div>
                   <div>
@@ -216,7 +216,7 @@ const Verify = () => {
             </div>
 
             {/* Info */}
-            <div className="mt-6 p-4 rounded-xl bg-secondary/50 border border-border">
+            <div className="mt-6 p-4 rounded-2xl bg-secondary/50 border border-border">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-muted-foreground">

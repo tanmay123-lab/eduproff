@@ -169,7 +169,7 @@ const Auth = () => {
       <button
         type="button"
         onClick={() => setSelectedRole("candidate")}
-        className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left cursor-pointer ${
+        className={`relative p-4 rounded-2xl border-2 transition-all duration-200 text-left cursor-pointer ${
           selectedRole === "candidate"
             ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/20 scale-[1.02]"
             : "border-border hover:border-primary/40 hover:bg-secondary/60"
@@ -180,7 +180,7 @@ const Auth = () => {
             <Check className="w-2.5 h-2.5" />
           </div>
         )}
-        <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center mb-2">
+        <div className="w-10 h-10 rounded-2xl bg-primary/15 flex items-center justify-center mb-2">
           <GraduationCap className="w-5 h-5 text-primary" />
         </div>
         <h3 className="font-display font-semibold text-foreground mb-0.5 text-sm">Candidate</h3>
@@ -190,7 +190,7 @@ const Auth = () => {
       <button
         type="button"
         onClick={() => setSelectedRole("recruiter")}
-        className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left cursor-pointer ${
+        className={`relative p-4 rounded-2xl border-2 transition-all duration-200 text-left cursor-pointer ${
           selectedRole === "recruiter"
             ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/20 scale-[1.02]"
             : "border-border hover:border-primary/40 hover:bg-secondary/60"
@@ -201,7 +201,7 @@ const Auth = () => {
             <Check className="w-2.5 h-2.5" />
           </div>
         )}
-        <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center mb-2">
+        <div className="w-10 h-10 rounded-2xl bg-primary/15 flex items-center justify-center mb-2">
           <Users className="w-5 h-5 text-primary" />
         </div>
         <h3 className="font-display font-semibold text-foreground mb-0.5 text-sm">Recruiter</h3>
@@ -211,7 +211,7 @@ const Auth = () => {
       <button
         type="button"
         onClick={() => setSelectedRole("institution")}
-        className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left cursor-pointer ${
+        className={`relative p-4 rounded-2xl border-2 transition-all duration-200 text-left cursor-pointer ${
           selectedRole === "institution"
             ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/20 scale-[1.02]"
             : "border-border hover:border-primary/40 hover:bg-secondary/60"
@@ -222,7 +222,7 @@ const Auth = () => {
             <Check className="w-2.5 h-2.5" />
           </div>
         )}
-        <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center mb-2">
+        <div className="w-10 h-10 rounded-2xl bg-primary/15 flex items-center justify-center mb-2">
           <Building2 className="w-5 h-5 text-primary" />
         </div>
         <h3 className="font-display font-semibold text-foreground mb-0.5 text-sm">Institution</h3>
@@ -295,7 +295,7 @@ const Auth = () => {
             </div>
 
             {/* Form Card */}
-            <div className="bg-card rounded-2xl p-8 shadow-medium border border-border/50">
+            <div className="bg-card rounded-3xl p-8 shadow-medium border border-border/50">
               {mode === "forgot-password" ? (
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Back button */}
