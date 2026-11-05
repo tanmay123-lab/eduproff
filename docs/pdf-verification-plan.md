@@ -20,3 +20,4 @@ Specification for the certificate verification system to **only accept PDF files
 - Hash computation and metadata extraction
 - Safe storage upload in `certificates` bucket
 - Immediate verification lookup against registered institutional credentials
+

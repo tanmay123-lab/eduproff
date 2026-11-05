@@ -1,7 +1,8 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "eduproof",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Tamper-proof digital credential and certificate verification platform",
   "type": "module",
   "scripts": {
     "dev": "vite",

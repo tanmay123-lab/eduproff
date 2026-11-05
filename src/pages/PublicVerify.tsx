@@ -245,7 +245,7 @@ export default function PublicVerify() {
           {/* Info Section */}
           <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>
-              EduProof uses AI-powered verification to validate educational credentials.
+              EduProof uses automated institutional database matching to validate educational credentials.
               <br />
               If you have questions, visit our{" "}
               <a href="/support" className="text-primary hover:underline">Support</a> page.
