@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -30,8 +30,8 @@ import VerificationLogs from "./pages/institution/VerificationLogs";
 import InstitutionAnalytics from "./pages/institution/InstitutionAnalytics";
 import RecruiterDashboard from "./pages/recruiter/RecruiterDashboard";
 import RecruiterOverview from "./pages/recruiter/RecruiterOverview";
-import RecruiterVerify from "./pages/recruiter/RecruiterVerify";
-import RecruiterHistory from "./pages/recruiter/RecruiterHistory";
+import RecruiterStudents from "./pages/recruiter/RecruiterStudents";
+import RecruiterShortlist from "./pages/recruiter/RecruiterShortlist";
 
 const queryClient = new QueryClient();
 
@@ -70,8 +70,10 @@ const App = () => (
                 }
               >
                 <Route index element={<RecruiterOverview />} />
-                <Route path="verify" element={<RecruiterVerify />} />
-                <Route path="history" element={<RecruiterHistory />} />
+                <Route path="students" element={<RecruiterStudents />} />
+                <Route path="shortlist" element={<RecruiterShortlist />} />
+                <Route path="verify" element={<Navigate to="/recruiter/students" replace />} />
+                <Route path="history" element={<Navigate to="/recruiter/shortlist" replace />} />
               </Route>
               <Route 
                 path="/verify" 
