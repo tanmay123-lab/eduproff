@@ -12,7 +12,7 @@ import {
   RotateCcw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { processSafarMessage, ChatMessage, SupportedLanguage, QUICK_PROMPTS } from "@/services/safarAiEngine";
+import { processSafarMessage, ChatMessage, SupportedLanguage } from "@/services/safarAiEngine";
 
 export function FloatingChat() {
   const navigate = useNavigate();
@@ -201,20 +201,6 @@ export function FloatingChat() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-          </div>
-
-          {/* Quick Action Chips */}
-          <div className="bg-secondary/40 border-b border-border/60 px-4 py-2.5 flex items-center gap-2 overflow-x-auto scrollbar-none">
-            {QUICK_PROMPTS.map((chip, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleSend(chip.query)}
-                className="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-background/90 hover:bg-primary/15 hover:text-primary hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-sm active:scale-95 border border-border text-[11px] font-medium transition-all duration-200 flex-shrink-0"
-              >
-                {lang === "hi" ? chip.labelHi : chip.labelEn}
-              </button>
-            ))}
           </div>
 
           {/* Message Stream */}
