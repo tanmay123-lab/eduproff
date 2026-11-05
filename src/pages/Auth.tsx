@@ -33,17 +33,16 @@ const Auth = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (user && !isSubmitting) {
       if (role === "recruiter") {
         navigate("/recruiter", { replace: true });
       } else if (role === "institution") {
         navigate("/institution", { replace: true });
       } else {
-        // Default to candidate/student dashboard
         navigate("/student", { replace: true });
       }
     }
-  }, [user, role, navigate]);
+  }, [user, role, navigate, isSubmitting]);
 
   const validateForm = () => {
     try {
@@ -102,7 +101,7 @@ const Auth = () => {
           setMode("login");
         }
       } else if (mode === "signup") {
-        const { error } = await signUp(email, password, fullName, selectedRole!);
+        const { error, role: signedRole } = await signUp(email, password, fullName, selectedRole!);
         if (error) {
           if (error.message.includes("already registered")) {
             toast({
@@ -122,11 +121,12 @@ const Auth = () => {
             title: "Welcome to EduProof! 🎉",
             description: "Your account has been created successfully.",
           });
-          const target = selectedRole === "recruiter" ? "/recruiter" : selectedRole === "institution" ? "/institution" : "/student";
+          const effectiveRole = signedRole || selectedRole;
+          const target = effectiveRole === "recruiter" ? "/recruiter" : effectiveRole === "institution" ? "/institution" : "/student";
           navigate(target, { replace: true });
         }
       } else {
-        const { error } = await signIn(email, password);
+        const { error, role: loggedRole } = await signIn(email, password);
         if (error) {
           toast({
             title: "Login failed",
@@ -138,7 +138,8 @@ const Auth = () => {
             title: "Welcome back! 🌟",
             description: "You have logged in successfully.",
           });
-          const target = role === "recruiter" ? "/recruiter" : role === "institution" ? "/institution" : "/student";
+          const effectiveRole = loggedRole || role;
+          const target = effectiveRole === "recruiter" ? "/recruiter" : effectiveRole === "institution" ? "/institution" : "/student";
           navigate(target, { replace: true });
         }
       }
@@ -254,6 +255,24 @@ const Auth = () => {
   };
 
   const headerContent = getHeaderContent();
+
+  if (user && !isSubmitting) {
+    return (
+      <Layout>
+        <section className="min-h-[80vh] flex items-center justify-center py-16">
+          <div className="text-center p-8 bg-card rounded-2xl border border-border/60 shadow-elevated max-w-sm mx-auto">
+            <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
+            <h2 className="font-display text-lg font-semibold text-foreground mb-1">
+              Redirecting to Dashboard...
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Taking you to your verified workspace ✨
+            </p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

@@ -14,13 +14,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { processSafarMessage, ChatMessage, SupportedLanguage } from "@/services/safarAiEngine";
 
-const QUICK_PROMPTS = [
-  { labelEn: "🔍 Verify Certificate", labelHi: "🔍 सर्टिफिकेट जांचें", query: "How to verify certificate?" },
-  { labelEn: "🛡️ Trust Score Explained", labelHi: "🛡️ ट्रस्ट स्कोर क्या है?", query: "What is trust score?" },
-  { labelEn: "🎓 Student & CV Guide", labelHi: "🎓 छात्र और CV गाइड", query: "How can candidates upload and generate CV?" },
-  { labelEn: "🏢 Recruiter Search", labelHi: "🏢 रिक्रूटर पोर्टल", query: "How do recruiters verify candidates?" },
-];
-
 export function FloatingChat() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -234,8 +227,8 @@ export function FloatingChat() {
                 <div className={`max-w-[85%] space-y-2 ${msg.sender === "user" ? "items-end" : "items-start"}`}>
                   <div
                     className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-xs whitespace-pre-line ${msg.sender === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-xs font-medium"
-                        : "bg-card border border-border text-foreground rounded-bl-xs"
+                      ? "bg-primary text-primary-foreground rounded-br-xs font-medium"
+                      : "bg-card border border-border text-foreground rounded-bl-xs"
                       }`}
                   >
                     {msg.text}

@@ -10,8 +10,8 @@ interface AuthContextType {
   session: Session | null;
   role: UserRole;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, role: "candidate" | "recruiter" | "institution") => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, role: "candidate" | "recruiter" | "institution") => Promise<{ error: Error | null; role?: UserRole }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; role?: UserRole }>;
   signOut: () => Promise<void>;
 }
 
@@ -102,46 +102,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .insert({
-            user_id: data.user.id,
-            full_name: fullName,
-          });
+        setUser(data.user);
+        if (data.session) {
+          setSession(data.session);
+        }
+        setRole(selectedRole);
 
-        if (profileError) {
+        // Create profile
+        try {
+          await supabase
+            .from("profiles")
+            .upsert({
+              user_id: data.user.id,
+              full_name: fullName,
+            });
+        } catch (profileError) {
           console.error("Error creating profile:", profileError);
         }
 
-        // If we have a session (email confirmation disabled), assign role via edge function
+        // Upsert user role directly into user_roles table
+        try {
+          await supabase
+            .from("user_roles")
+            .upsert({ user_id: data.user.id, role: selectedRole });
+        } catch {
+          // Ignore if restricted by RLS
+        }
+
+        // Try edge function if available
         if (data.session) {
           try {
-            await supabase
-              .from("user_roles")
-              .upsert({ user_id: data.user.id, role: selectedRole });
-          } catch {
-            // Ignore if restricted by RLS
-          }
-
-          try {
-            const { error: roleError } = await supabase.functions.invoke(
+            await supabase.functions.invoke(
               'assign-role',
               { body: { requestedRole: selectedRole } }
             );
-            if (roleError) {
-              console.error("Edge function role assignment failed:", roleError);
-            }
           } catch (fnError) {
             console.error("Could not reach assign-role function:", fnError);
           }
         }
 
-        // Always set role optimistically in local state
-        setRole(selectedRole);
+        return { error: null, role: selectedRole };
       }
 
-      return { error: null };
+      return { error: null, role: selectedRole };
     } catch (error) {
       return { error: error as Error };
     }
@@ -149,13 +152,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
         return { error };
+      }
+
+      if (data?.user) {
+        setUser(data.user);
+        if (data.session) {
+          setSession(data.session);
+        }
+        const userRole = await fetchUserRole(data.user.id);
+        const effectiveRole = userRole || (data.user.user_metadata?.role as UserRole) || null;
+        setRole(effectiveRole);
+        return { error: null, role: effectiveRole };
       }
 
       return { error: null };
