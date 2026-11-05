@@ -12,7 +12,7 @@ import {
   RotateCcw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { processSafarMessage, ChatMessage, SupportedLanguage } from "@/services/safarAiEngine";
+import { processSafarMessage, ChatMessage, SupportedLanguage, QUICK_PROMPTS } from "@/services/safarAiEngine";
 
 export function FloatingChat() {
   const navigate = useNavigate();

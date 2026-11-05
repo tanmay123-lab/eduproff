@@ -71,6 +71,29 @@ const FAQ_KNOWLEDGE_BASE: KnowledgeResponse[] = [
   }
 ];
 
+export const QUICK_PROMPTS = [
+  {
+    query: "How does EduProof verify certificates?",
+    labelEn: "🛡️ Verification Process",
+    labelHi: "🛡️ सत्यापन प्रक्रिया",
+  },
+  {
+    query: "What is Trust Score?",
+    labelEn: "⭐ Trust Score Explained",
+    labelHi: "⭐ ट्रस्ट स्कोर क्या है?",
+  },
+  {
+    query: "How can candidates generate a verified CV?",
+    labelEn: "🎓 Student & CV Guide",
+    labelHi: "🎓 विद्यार्थी और CV गाइड",
+  },
+  {
+    query: "How do recruiters find talent?",
+    labelEn: "🏢 Recruiter Search",
+    labelHi: "🏢 रिक्रूटर सर्च",
+  },
+];
+
 export async function processSafarMessage(
   userText: string,
   lang: SupportedLanguage = "en"
