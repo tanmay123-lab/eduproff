@@ -30,13 +30,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
       
-      if (error) {
-        console.error("Error fetching user role:", error);
-        return null;
+      if (data?.role) {
+        return data.role as UserRole;
       }
-      return data?.role as UserRole;
+
+      // Check current session user metadata as immediate fallback
+      const { data: sessionData } = await supabase.auth.getSession();
+      const metaRole = sessionData.session?.user?.user_metadata?.role;
+      if (metaRole) {
+        return metaRole as UserRole;
+      }
+      return null;
     } catch (error) {
       console.error("Error fetching user role:", error);
       return null;
@@ -84,6 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: {
           emailRedirectTo: redirectUrl,
+          data: {
+            role: selectedRole,
+            full_name: fullName,
+          },
         },
       });
 
@@ -107,13 +117,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // If we have a session (email confirmation disabled), assign role via edge function
         if (data.session) {
           try {
+            await supabase
+              .from("user_roles")
+              .upsert({ user_id: data.user.id, role: selectedRole });
+          } catch {
+            // Ignore if restricted by RLS
+          }
+
+          try {
             const { error: roleError } = await supabase.functions.invoke(
               'assign-role',
               { body: { requestedRole: selectedRole } }
             );
             if (roleError) {
-              console.error("Edge function role assignment failed, falling back to direct insert:", roleError);
-              // Fallback: set role optimistically — DB trigger already created 'candidate'
+              console.error("Edge function role assignment failed:", roleError);
             }
           } catch (fnError) {
             console.error("Could not reach assign-role function:", fnError);

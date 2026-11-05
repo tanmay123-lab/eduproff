@@ -6,7 +6,7 @@ import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { GraduationCap, Users, Mail, Lock, User, Sparkles, ArrowRight, ArrowLeft, Building2 } from "lucide-react";
+import { GraduationCap, Users, Mail, Lock, User, Sparkles, ArrowRight, ArrowLeft, Building2, Check } from "lucide-react";
 import { z } from "zod";
 
 const authSchema = z.object({
@@ -122,6 +122,8 @@ const Auth = () => {
             title: "Welcome to EduProof! 🎉",
             description: "Your account has been created successfully.",
           });
+          const target = selectedRole === "recruiter" ? "/recruiter" : selectedRole === "institution" ? "/institution" : "/student";
+          navigate(target, { replace: true });
         }
       } else {
         const { error } = await signIn(email, password);
@@ -166,49 +168,64 @@ const Auth = () => {
       <button
         type="button"
         onClick={() => setSelectedRole("candidate")}
-        className={`p-5 rounded-xl border-2 transition-all text-left ${
+        className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left cursor-pointer ${
           selectedRole === "candidate"
-            ? "border-primary bg-primary/5 shadow-glow-primary"
-            : "border-border hover:border-primary/50 hover:bg-secondary/50"
+            ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/20 scale-[1.02]"
+            : "border-border hover:border-primary/40 hover:bg-secondary/60"
         }`}
       >
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+        {selectedRole === "candidate" && (
+          <div className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center">
+            <Check className="w-2.5 h-2.5" />
+          </div>
+        )}
+        <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center mb-2">
           <GraduationCap className="w-5 h-5 text-primary" />
         </div>
         <h3 className="font-display font-semibold text-foreground mb-0.5 text-sm">Candidate</h3>
-        <p className="text-xs text-muted-foreground">Verify certificates</p>
+        <p className="text-[11px] text-muted-foreground leading-tight">Verify certs</p>
       </button>
       
       <button
         type="button"
         onClick={() => setSelectedRole("recruiter")}
-        className={`p-5 rounded-xl border-2 transition-all text-left ${
+        className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left cursor-pointer ${
           selectedRole === "recruiter"
-            ? "border-accent bg-accent/5 shadow-glow-accent"
-            : "border-border hover:border-accent/50 hover:bg-secondary/50"
+            ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/20 scale-[1.02]"
+            : "border-border hover:border-primary/40 hover:bg-secondary/60"
         }`}
       >
-        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-2">
-          <Users className="w-5 h-5 text-accent-foreground" />
+        {selectedRole === "recruiter" && (
+          <div className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center">
+            <Check className="w-2.5 h-2.5" />
+          </div>
+        )}
+        <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center mb-2">
+          <Users className="w-5 h-5 text-primary" />
         </div>
         <h3 className="font-display font-semibold text-foreground mb-0.5 text-sm">Recruiter</h3>
-        <p className="text-xs text-muted-foreground">Find talent</p>
+        <p className="text-[11px] text-muted-foreground leading-tight">Find talent</p>
       </button>
 
       <button
         type="button"
         onClick={() => setSelectedRole("institution")}
-        className={`p-5 rounded-xl border-2 transition-all text-left ${
+        className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left cursor-pointer ${
           selectedRole === "institution"
-            ? "border-primary bg-primary/5 shadow-glow-primary"
-            : "border-border hover:border-primary/50 hover:bg-secondary/50"
+            ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/20 scale-[1.02]"
+            : "border-border hover:border-primary/40 hover:bg-secondary/60"
         }`}
       >
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+        {selectedRole === "institution" && (
+          <div className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center">
+            <Check className="w-2.5 h-2.5" />
+          </div>
+        )}
+        <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center mb-2">
           <Building2 className="w-5 h-5 text-primary" />
         </div>
         <h3 className="font-display font-semibold text-foreground mb-0.5 text-sm">Institution</h3>
-        <p className="text-xs text-muted-foreground">Issue certificates</p>
+        <p className="text-[11px] text-muted-foreground leading-tight">Issue certs</p>
       </button>
     </div>
   );
