@@ -9,20 +9,20 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email Us",
-    value: "support@eduproof.com",
-    description: "We'll respond within 24 hours",
+    value: "We will be coming soon",
+    description: "Support desk opening soon",
   },
   {
     icon: Phone,
     title: "Call Us",
-    value: "+1 (555) 123-4567",
-    description: "Mon-Fri, 9am-6pm EST",
+    value: "We will be coming soon",
+    description: "Helpline opening soon",
   },
   {
     icon: MapPin,
     title: "Visit Us",
-    value: "123 Education Lane",
-    description: "San Francisco, CA 94102",
+    value: "We will be coming soon",
+    description: "Physical presence coming soon",
   },
 ];
 
@@ -67,7 +67,7 @@ const Support = () => {
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
-            <div className="bg-card rounded-2xl p-8 shadow-soft border border-border/50">
+            <div className="bg-card rounded-3xl p-8 shadow-soft border border-border/50">
               <h2 className="font-display text-2xl font-bold text-foreground mb-6">
                 Send Us a Message
               </h2>
@@ -142,30 +142,30 @@ const Support = () => {
               {contactInfo.map((info) => (
                 <div
                   key={info.title}
-                  className="bg-card rounded-xl p-6 shadow-soft border border-border/50 flex items-start gap-4"
+                  className="bg-card rounded-3xl p-6 shadow-soft border border-border/50 flex items-start gap-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <info.icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-display font-semibold text-foreground mb-1">
                       {info.title}
                     </h3>
-                    <p className="text-foreground">{info.value}</p>
+                    <p className="text-foreground font-medium">{info.value}</p>
                     <p className="text-sm text-muted-foreground">{info.description}</p>
                   </div>
                 </div>
               ))}
 
               {/* FAQ Link */}
-              <div className="bg-secondary/50 rounded-xl p-6 border border-border">
+              <div className="bg-secondary/50 rounded-3xl p-6 border border-border transition-all duration-300 hover:shadow-lg">
                 <h3 className="font-display font-semibold text-foreground mb-2">
                   Looking for quick answers?
                 </h3>
                 <p className="text-muted-foreground text-sm mb-4">
                   Check out our frequently asked questions for instant help with common issues.
                 </p>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="rounded-full">
                   View FAQ
                 </Button>
               </div>

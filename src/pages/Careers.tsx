@@ -97,9 +97,9 @@ const Careers = () => {
             {values.map((value) => (
               <div
                 key={value.title}
-                className="bg-card rounded-2xl p-8 shadow-soft border border-border/50 text-center hover:shadow-medium transition-shadow"
+                className="bg-card rounded-3xl p-8 shadow-soft border border-border/50 text-center hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
               >
-                <div className="w-14 h-14 rounded-xl gradient-hero flex items-center justify-center mx-auto mb-6">
+                <div className="w-14 h-14 rounded-2xl gradient-hero flex items-center justify-center mx-auto mb-6 shadow-md">
                   <value.icon className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <h3 className="font-display text-xl font-semibold text-foreground mb-3">
@@ -134,7 +134,7 @@ const Careers = () => {
               ].map((benefit) => (
                 <div
                   key={benefit}
-                  className="flex items-center gap-3 bg-card rounded-xl p-4 shadow-soft border border-border/50"
+                  className="flex items-center gap-3 bg-card rounded-2xl p-4 shadow-soft border border-border/50 hover:shadow-md hover:border-primary/30 transition-all duration-300"
                 >
                   <div className="w-2 h-2 rounded-full gradient-hero" />
                   <span className="text-foreground">{benefit}</span>
