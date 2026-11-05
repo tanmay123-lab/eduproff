@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { 
-  MessageSquare, 
-  X, 
-  Send, 
-  Sparkles, 
-  ShieldCheck, 
-  ArrowRight, 
-  FileCheck2, 
-  Bot, 
+import {
+  MessageSquare,
+  X,
+  Send,
+  Sparkles,
+  ShieldCheck,
+  ArrowRight,
+  FileCheck2,
+  Bot,
   User as UserIcon,
   RotateCcw
 } from "lucide-react";
@@ -144,7 +144,7 @@ export function FloatingChat() {
       {/* Floating Chat Modal */}
       {isOpen && (
         <div className="fixed bottom-6 right-4 sm:right-6 w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[85vh] bg-card text-card-foreground rounded-2xl shadow-elevated flex flex-col z-50 border border-border overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-          
+
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-600 via-teal-700 to-emerald-700 text-white px-4 py-3.5 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
@@ -167,18 +167,16 @@ export function FloatingChat() {
                 <button
                   type="button"
                   onClick={() => setLang("en")}
-                  className={`px-2 py-0.5 rounded transition-all ${
-                    lang === "en" ? "bg-white text-emerald-800 shadow-xs" : "text-white/80 hover:text-white"
-                  }`}
+                  className={`px-2 py-0.5 rounded transition-all ${lang === "en" ? "bg-white text-emerald-800 shadow-xs" : "text-white/80 hover:text-white"
+                    }`}
                 >
                   EN
                 </button>
                 <button
                   type="button"
                   onClick={() => setLang("hi")}
-                  className={`px-2 py-0.5 rounded transition-all ${
-                    lang === "hi" ? "bg-white text-emerald-800 shadow-xs" : "text-white/80 hover:text-white"
-                  }`}
+                  className={`px-2 py-0.5 rounded transition-all ${lang === "hi" ? "bg-white text-emerald-800 shadow-xs" : "text-white/80 hover:text-white"
+                    }`}
                 >
                   हिंदी
                 </button>
@@ -235,11 +233,10 @@ export function FloatingChat() {
 
                 <div className={`max-w-[85%] space-y-2 ${msg.sender === "user" ? "items-end" : "items-start"}`}>
                   <div
-                    className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-xs whitespace-pre-line ${
-                      msg.sender === "user"
+                    className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-xs whitespace-pre-line ${msg.sender === "user"
                         ? "bg-primary text-primary-foreground rounded-br-xs font-medium"
                         : "bg-card border border-border text-foreground rounded-bl-xs"
-                    }`}
+                      }`}
                   >
                     {msg.text}
                   </div>
@@ -317,3 +314,4 @@ export function FloatingChat() {
     </>
   );
 }
+
