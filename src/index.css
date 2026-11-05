@@ -187,13 +187,18 @@
   }
 
   /* Reusable hover-lift card effect */
-  .hover-card {
-    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-elevated hover:border-primary/20 cursor-default;
+  .hover-card, .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-elevated hover:border-primary/30 cursor-pointer;
   }
 
   /* Icon container that scales on parent hover */
   .hover-icon-wrap {
-    @apply transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15;
+    @apply transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20;
+  }
+
+  /* Interactive smooth hover for lists, tables, and rows */
+  .hover-row {
+    @apply transition-all duration-200 hover:bg-secondary/70 hover:translate-x-1;
   }
 }
 
@@ -201,4 +206,13 @@
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Global Interactive Focus & Hover Treatments */
+input:not([type="checkbox"]):not([type="radio"]), textarea, select {
+  @apply transition-all duration-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20;
+}
+
+a:not([class*="btn"]):not([class*="button"]) {
+  @apply transition-colors duration-200;
 }

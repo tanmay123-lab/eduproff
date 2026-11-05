@@ -112,7 +112,7 @@ export const CertificateCard = ({ certificate, onDelete }: CertificateCardProps)
   }, [certificate.certificate_url]);
 
   return (
-    <div className="bg-card rounded-xl p-6 shadow-soft border border-border/50 hover:shadow-medium transition-shadow">
+    <div className="group bg-card rounded-2xl p-6 shadow-soft border border-border/50 transition-all duration-300 hover:shadow-elevated hover:-translate-y-2 hover:border-primary/40">
       <div className="flex items-center gap-6">
         {/* Thumbnail or Icon */}
         {certificate.certificate_url && isImage ? (
