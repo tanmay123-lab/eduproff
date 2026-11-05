@@ -33,13 +33,14 @@ const Auth = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user && role) {
-      if (role === "candidate") {
-        navigate("/student");
-      } else if (role === "recruiter") {
-        navigate("/recruiter");
+    if (user) {
+      if (role === "recruiter") {
+        navigate("/recruiter", { replace: true });
       } else if (role === "institution") {
-        navigate("/institution");
+        navigate("/institution", { replace: true });
+      } else {
+        // Default to candidate/student dashboard
+        navigate("/student", { replace: true });
       }
     }
   }, [user, role, navigate]);
@@ -135,6 +136,8 @@ const Auth = () => {
             title: "Welcome back! 🌟",
             description: "You have logged in successfully.",
           });
+          const target = role === "recruiter" ? "/recruiter" : role === "institution" ? "/institution" : "/student";
+          navigate(target, { replace: true });
         }
       }
     } finally {
