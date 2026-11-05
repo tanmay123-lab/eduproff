@@ -22,3 +22,4 @@ declare module "https://esm.sh/@supabase/supabase-js@2" {
 declare module "https://deno.land/x/zod@v3.22.4/mod.ts" {
   export * from "zod";
 }
+
