@@ -98,7 +98,7 @@ const About = () => {
                   ecosystem for students, institutions, and employers alike.
                 </p>
               </div>
-              <div className="bg-card rounded-2xl p-8 shadow-medium border border-border/50">
+              <div className="bg-card rounded-3xl p-8 shadow-medium border border-border/50 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                 <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center mb-6 shadow-glow-primary">
                   <Shield className="w-8 h-8 text-primary-foreground" />
                 </div>
@@ -145,17 +145,17 @@ const About = () => {
             {fintechConnections.map((item) => (
               <div
                 key={item.title}
-                className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+                className="bg-card rounded-3xl p-6 sm:p-7 shadow-soft border border-border/50 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 group cursor-default"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Building2 className="w-5 h-5 text-primary" />
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 group-hover:scale-115 transition-all duration-300 shadow-xs">
+                    <Building2 className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                    <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
                       {item.description}
                     </p>
                   </div>
@@ -182,15 +182,15 @@ const About = () => {
             {values.map((value) => (
               <div
                 key={value.title}
-                className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 text-center"
+                className="bg-card rounded-3xl p-6 sm:p-7 shadow-soft border border-border/50 text-center hover:shadow-xl hover:-translate-y-2 hover:scale-[1.03] transition-all duration-300 group cursor-default"
               >
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 group-hover:bg-primary/20 group-hover:scale-120 group-hover:rotate-3 transition-all duration-300 shadow-xs">
                   <value.icon className="w-7 h-7 text-primary" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                   {value.title}
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {value.description}
                 </p>
               </div>

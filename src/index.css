@@ -190,45 +190,45 @@
   /* Amplified hover-lift card effect */
   .hover-card, .hover-lift {
     border-radius: 1.75rem;
-    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
     @apply cursor-pointer;
   }
   .hover-card:hover, .hover-lift:hover {
-    transform: translateY(-8px) scale(1.018);
-    box-shadow: 0 22px 42px -10px hsl(160 60% 38% / 0.22), 0 8px 18px -4px rgba(0, 0, 0, 0.08);
-    border-color: hsl(160 55% 45% / 0.55);
+    transform: translateY(-10px) scale(1.025);
+    box-shadow: 0 28px 56px -12px hsl(160 60% 38% / 0.28), 0 10px 24px -4px rgba(0, 0, 0, 0.1);
+    border-color: hsl(160 55% 45% / 0.65);
   }
 
   /* Global tactile elevation and smooth curves for interactive cards across all pages */
   .bg-card:not(.no-hover):not(form) {
     border-radius: 1.5rem;
-    transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.26s ease, border-color 0.26s ease;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
   }
   .bg-card:not(.no-hover):not(form):hover {
-    transform: translateY(-5px) scale(1.01);
-    box-shadow: 0 18px 36px -8px hsl(160 60% 38% / 0.18), 0 6px 14px -4px rgba(0, 0, 0, 0.06);
-    border-color: hsl(160 55% 45% / 0.45);
+    transform: translateY(-7px) scale(1.015);
+    box-shadow: 0 24px 48px -10px hsl(160 60% 38% / 0.22), 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+    border-color: hsl(160 55% 45% / 0.55);
   }
 
   /* Icon container that springs and glows on parent hover */
   .hover-icon-wrap {
-    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, box-shadow 0.25s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, box-shadow 0.25s ease;
   }
   .group:hover .hover-icon-wrap,
   .hover-icon-wrap:hover {
-    transform: scale(1.15) rotate(2deg);
-    box-shadow: 0 6px 18px -2px hsl(160 60% 38% / 0.25);
-    @apply bg-primary/20;
+    transform: scale(1.2) rotate(4deg);
+    box-shadow: 0 8px 24px -2px hsl(160 60% 38% / 0.3);
+    @apply bg-primary/25;
   }
 
   /* Interactive smooth hover for lists, tables, and rows */
   .hover-row {
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease;
   }
   .hover-row:hover {
-    transform: translateX(6px);
-    box-shadow: 0 4px 14px -2px hsl(160 60% 38% / 0.12);
-    @apply bg-secondary/80;
+    transform: translateX(8px);
+    box-shadow: 0 6px 18px -2px hsl(160 60% 38% / 0.16);
+    @apply bg-secondary/90;
   }
 }
 
@@ -240,27 +240,31 @@
 
 /* Global Interactive Focus & Amplified Hover Treatments */
 button:not(:disabled):not([aria-disabled="true"]) {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, filter 0.2s ease;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s ease, filter 0.2s ease, background-color 0.2s ease;
 }
 button:not(:disabled):not([aria-disabled="true"]):hover {
-  transform: translateY(-2px);
-  filter: brightness(1.05);
+  transform: translateY(-3px) scale(1.02);
+  filter: brightness(1.08);
+  box-shadow: 0 12px 28px -6px hsl(160 60% 38% / 0.28);
 }
 button:not(:disabled):not([aria-disabled="true"]):active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.96);
+  box-shadow: 0 2px 8px -1px hsl(160 60% 38% / 0.15);
 }
 
 input:not([type="checkbox"]):not([type="radio"]), textarea, select {
-  border-radius: 1rem;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 1.25rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 input:not([type="checkbox"]):not([type="radio"]):hover, textarea:hover, select:hover {
-  border-color: hsl(160 55% 45% / 0.6);
-  box-shadow: 0 2px 10px -2px hsl(160 60% 38% / 0.15);
+  border-color: hsl(160 55% 45% / 0.75);
+  box-shadow: 0 4px 16px -2px hsl(160 60% 38% / 0.2);
+  transform: translateY(-1.5px);
 }
 input:not([type="checkbox"]):not([type="radio"]):focus, textarea:focus, select:focus {
   border-color: hsl(160 55% 45%);
-  box-shadow: 0 0 0 3px hsl(160 55% 45% / 0.22);
+  box-shadow: 0 0 0 4px hsl(160 55% 45% / 0.25), 0 4px 20px -2px hsl(160 60% 38% / 0.15);
+  transform: translateY(-1.5px);
 }
 
 a:not([class*="btn"]):not([class*="button"]) {
@@ -268,10 +272,17 @@ a:not([class*="btn"]):not([class*="button"]) {
 }
 a:not([class*="btn"]):not([class*="button"]):hover {
   color: hsl(160 55% 45%);
+  transform: translateY(-1px);
+}
+
+/* Interactive nav pills */
+nav a:hover {
+  transform: translateY(-1.5px) scale(1.04);
 }
 
 /* Pills and Badges subtle tactile bounce on hover */
 [class*="rounded-full"][class*="px-"]:hover {
-  transform: translateY(-1px) scale(1.04);
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 6px 18px -2px hsl(160 60% 38% / 0.22);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }

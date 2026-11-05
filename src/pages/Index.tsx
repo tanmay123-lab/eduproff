@@ -228,13 +228,13 @@ const Index = () => {
             {workflowSteps.map((step, index) => (
               <div
                 key={step.title}
-                className="group relative bg-card rounded-3xl p-7 shadow-card border border-border text-center hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
+                className="group relative bg-card rounded-3xl p-7 shadow-card border border-border text-center hover:shadow-2xl hover:-translate-y-3 hover:scale-[1.03] hover:border-primary/40 transition-all duration-300 cursor-default"
               >
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs group-hover:scale-110 transition-transform duration-300">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs group-hover:scale-120 group-hover:shadow-md transition-all duration-300">
                   {index + 1}
                 </div>
 
-                <div className="w-12 h-12 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto mb-4 mt-2 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
+                <div className="w-12 h-12 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto mb-4 mt-2 group-hover:bg-primary/20 group-hover:scale-120 group-hover:rotate-3 transition-all duration-300 shadow-xs">
                   <step.icon className="w-6 h-6 text-primary" />
                 </div>
 
@@ -275,22 +275,22 @@ const Index = () => {
             {audiences.map((audience) => (
               <div
                 key={audience.title}
-                className="group bg-card rounded-3xl p-8 shadow-card border border-border hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
+                className="group bg-card rounded-3xl p-8 shadow-card border border-border hover:shadow-2xl hover:-translate-y-3.5 hover:scale-[1.03] hover:border-primary/40 transition-all duration-300 cursor-default"
               >
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/25 group-hover:scale-120 group-hover:rotate-3 transition-all duration-300 shadow-xs">
                   <audience.icon className="w-6 h-6 text-primary" />
                 </div>
 
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                   {audience.title}
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                   {audience.description}
                 </p>
-                <Button variant="outline" size="sm" className="rounded-full" asChild>
+                <Button variant="outline" size="sm" className="rounded-full hover:scale-105" asChild>
                   <Link to={audience.to}>
                     {audience.cta}
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </Button>
               </div>
@@ -315,13 +315,13 @@ const Index = () => {
             {benefits.map((benefit) => (
               <div
                 key={benefit.title}
-                className="group bg-card rounded-3xl p-8 shadow-card border border-border hover:shadow-elevated hover:-translate-y-2 hover:border-primary/20 transition-all duration-300 cursor-default"
+                className="group bg-card rounded-3xl p-8 shadow-card border border-border hover:shadow-2xl hover:-translate-y-3.5 hover:scale-[1.03] hover:border-primary/40 transition-all duration-300 cursor-default"
               >
-                <div className="w-12 h-12 rounded-2xl bg-primary/8 flex items-center justify-center mb-5 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
+                <div className="w-12 h-12 rounded-2xl bg-primary/8 flex items-center justify-center mb-5 group-hover:bg-primary/25 group-hover:scale-120 group-hover:rotate-3 transition-all duration-300 shadow-xs">
                   <benefit.icon className="w-6 h-6 text-primary" />
                 </div>
 
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                   {benefit.title}
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">

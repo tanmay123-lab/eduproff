@@ -158,7 +158,7 @@ const HowItWorks = () => {
                     <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                       {step.description}
                     </p>
-                    <div className="bg-card rounded-xl p-6 border border-border/50">
+                    <div className="bg-card rounded-3xl p-6 border border-border/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                       <ul className="space-y-3">
                         {step.details.map((detail, i) => (
                           <li key={i} className="flex items-start gap-3">
@@ -192,9 +192,9 @@ const HowItWorks = () => {
             {verificationExamples.map((example) => (
               <div
                 key={example.status}
-                className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+                className="bg-card rounded-3xl p-7 shadow-soft border border-border/50 hover:shadow-2xl hover:-translate-y-3 hover:scale-[1.02] transition-all duration-300 group cursor-default"
               >
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-120 group-hover:rotate-3 transition-all duration-300 shadow-xs ${
                   example.color === 'success' ? 'bg-success/10' :
                   example.color === 'accent' ? 'bg-accent/10' :
                   'bg-destructive/10'
@@ -206,7 +206,7 @@ const HowItWorks = () => {
                   }`} />
                 </div>
 
-                <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                   {example.title}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
