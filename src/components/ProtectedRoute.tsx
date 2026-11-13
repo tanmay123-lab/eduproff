@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, recovering } = useAuth();
 
   if (loading) {
     return (
@@ -17,9 +17,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     );
   }
 
-  if (!user) {
+  if (!user || recovering) {
     return <Navigate to="/auth" replace />;
   }
+
+  if (allowedRoles?.length && !role) return <Navigate to="/auth" replace />;
 
   if (allowedRoles && role && !allowedRoles.includes(role)) {
     // Redirect to appropriate dashboard based on role
