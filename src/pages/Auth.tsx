@@ -27,13 +27,13 @@ const Auth = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { user, role, signUp, signIn } = useAuth();
+  const { user, role, loading, recovering, signUp, signIn, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user && !isSubmitting) {
+    if (user && role && !loading && !recovering && !isSubmitting) {
       if (role === "recruiter") {
         navigate("/recruiter", { replace: true });
       } else if (role === "institution") {
@@ -42,14 +42,19 @@ const Auth = () => {
         navigate("/student", { replace: true });
       }
     }
-  }, [user, role, navigate, isSubmitting]);
+  }, [user, role, loading, recovering, navigate, isSubmitting]);
 
   const validateForm = () => {
     try {
-      const data = mode === "signup" 
-        ? { email, password, fullName } 
-        : { email, password };
-      authSchema.parse(data);
+      if (recovering) {
+        authSchema.shape.password.parse(password);
+      } else if (mode === "forgot-password") {
+        authSchema.pick({ email: true }).parse({ email });
+      } else if (mode === "signup") {
+        authSchema.parse({ email, password, fullName });
+      } else {
+        authSchema.extend({ password: z.string().min(1, "Enter your password") }).parse({ email, password });
+      }
       setErrors({});
       return true;
     } catch (error) {
@@ -58,6 +63,8 @@ const Auth = () => {
         error.errors.forEach((err) => {
           if (err.path[0]) {
             newErrors[err.path[0] as string] = err.message;
+          } else if (recovering) {
+            newErrors.password = err.message;
           }
         });
         setErrors(newErrors);
@@ -71,7 +78,7 @@ const Auth = () => {
     
     if (!validateForm()) return;
     
-    if (mode === "signup" && !selectedRole) {
+    if (!recovering && mode === "signup" && !selectedRole) {
       toast({
         title: "Please select a role",
         description: "Choose whether you're a Candidate or Recruiter",
@@ -83,67 +90,47 @@ const Auth = () => {
     setIsSubmitting(true);
 
     try {
-      if (mode === "forgot-password") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      if (recovering) {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) {
+          setErrors({ password: "Could not update the password. Try a different password or request a new link." });
+          return;
+        }
+        setMode("login");
+        await signOut();
+        toast({ title: "Password updated" });
+      } else if (mode === "forgot-password") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
           redirectTo: `${window.location.origin}/auth`,
         });
-        if (error) {
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive",
-          });
+        if (error?.status === 429) {
+          toast({ title: "Too many requests. Please try again later.", variant: "destructive" });
         } else {
-          toast({
-            title: "Check your email 📧",
-            description: "We've sent you a password reset link.",
-          });
+          toast({ title: "Check your email", description: "If the address is registered, a reset link will be sent." });
           setMode("login");
         }
-      } else if (mode === "signup") {
-        const { error, role: signedRole } = await signUp(email, password, fullName, selectedRole!);
+      } else if (mode === "signup" && selectedRole) {
+        const { error, confirmationRequired } = await signUp(email, password, fullName, selectedRole);
         if (error) {
-          if (error.message.includes("already registered")) {
-            toast({
-              title: "Account exists",
-              description: "This email is already registered. Please log in instead.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Sign up failed",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
-        } else {
-          toast({
-            title: "Welcome to EduProof! 🎉",
-            description: "Your account has been created successfully.",
-          });
-          const effectiveRole = signedRole || selectedRole;
-          const target = effectiveRole === "recruiter" ? "/recruiter" : effectiveRole === "institution" ? "/institution" : "/student";
-          navigate(target, { replace: true });
+          toast({ title: "Could not create an account", variant: "destructive" });
+        } else if (confirmationRequired) {
+          toast({ title: "Check your email", description: "Follow the confirmation link to finish signing up." });
+          setMode("login");
         }
       } else {
         const { error, role: loggedRole } = await signIn(email, password);
-        if (error) {
+        if (error || !loggedRole) {
           toast({
             title: "Login failed",
-            description: "Invalid email or password. Please try again.",
+            description: error ? "Check your credentials and try again." : "Your account role could not be loaded. Please try again.",
             variant: "destructive",
           });
-        } else {
-          toast({
-            title: "Welcome back! 🌟",
-            description: "You have logged in successfully.",
-          });
-          const effectiveRole = loggedRole || role;
-          const target = effectiveRole === "recruiter" ? "/recruiter" : effectiveRole === "institution" ? "/institution" : "/student";
-          navigate(target, { replace: true });
         }
       }
+    } catch {
+      toast({ title: "Could not complete the request. Please try again.", variant: "destructive" });
     } finally {
+      setPassword("");
       setIsSubmitting(false);
     }
   };
@@ -158,7 +145,7 @@ const Auth = () => {
     if (error) {
       toast({
         title: "Google sign-in failed",
-        description: error.message,
+        description: "Please try again.",
         variant: "destructive",
       });
     }
@@ -256,7 +243,22 @@ const Auth = () => {
 
   const headerContent = getHeaderContent();
 
-  if (user && !isSubmitting) {
+  if (recovering) {
+    return (
+      <Layout>
+        <form onSubmit={handleSubmit} className="mx-auto max-w-md space-y-4 px-4 py-16">
+          <h1 className="text-2xl font-semibold">Set a new password</h1>
+          <label htmlFor="new-password">New password</label>
+          <Input id="new-password" type="password" autoComplete="new-password" required
+            value={password} onChange={(event) => setPassword(event.target.value)} />
+          {errors.password && <p role="alert">{errors.password}</p>}
+          <Button type="submit" disabled={isSubmitting}>Update password</Button>
+        </form>
+      </Layout>
+    );
+  }
+
+  if (user && role && !loading && !recovering && !isSubmitting) {
     return (
       <Layout>
         <section className="min-h-[80vh] flex items-center justify-center py-16">
@@ -403,7 +405,7 @@ const Auth = () => {
                         {mode === "login" && (
                           <button
                             type="button"
-                            onClick={() => { setMode("forgot-password"); setErrors({}); }}
+                            onClick={() => { setMode("forgot-password"); setPassword(""); setErrors({}); }}
                             className="text-xs text-primary hover:underline"
                           >
                             Forgot password?
@@ -414,6 +416,7 @@ const Auth = () => {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           type="password"
+                          autoComplete={mode === "signup" ? "new-password" : "current-password"}
                           placeholder="••••••••"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
@@ -489,6 +492,7 @@ const Auth = () => {
                         type="button"
                         onClick={() => {
                           setMode(mode === "login" ? "signup" : "login");
+                          setPassword("");
                           setErrors({});
                         }}
                         className="text-primary font-medium ml-1 hover:underline"
