@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface StudentCandidate {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   avatarInitials: string;
   degree: string;
   institution: string;
@@ -208,7 +208,7 @@ export const fetchRecruiterTalentPool = async (): Promise<StudentCandidate[]> =>
       const userIds = [...new Set(certs.map(c => c.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, full_name, email")
+        .select("user_id, full_name")
         .in("user_id", userIds);
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
@@ -227,7 +227,7 @@ export const fetchRecruiterTalentPool = async (): Promise<StudentCandidate[]> =>
         return {
           id: `supabase-${c.id}`,
           name,
-          email: prof?.email || `${c.user_id.slice(0, 8)}@candidate.eduproof.com`,
+          email: null,
           avatarInitials: initials,
           degree: c.title || "Academic Degree Certificate",
           institution: c.issuer || "Accredited University",

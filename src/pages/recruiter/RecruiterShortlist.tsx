@@ -149,17 +149,19 @@ const RecruiterShortlist = () => {
                   <FileCheck2 className="w-3.5 h-3.5 mr-1.5" />
                   View Credentials
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full text-xs"
-                  asChild
-                >
-                  <a href={`mailto:${candidate.email}?subject=EduProof Interview Opportunity`}>
-                    <Mail className="w-3.5 h-3.5 mr-1" />
-                    Email
-                  </a>
-                </Button>
+                {candidate.email && (
+  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full text-xs"
+                    asChild
+                  >
+                    <a href={`mailto:${candidate.email}?subject=EduProof Interview Opportunity`}>
+                      <Mail className="w-3.5 h-3.5 mr-1" />
+                      Email
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
           ))}
@@ -229,16 +231,18 @@ const RecruiterShortlist = () => {
                 >
                   Close
                 </Button>
-                <Button
-                  variant="hero"
-                  className="rounded-full"
-                  asChild
-                >
-                  <a href={`mailto:${selectedCandidate.email}?subject=EduProof Interview Invitation`}>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Contact Candidate
-                  </a>
-                </Button>
+                {selectedCandidate.email && (
+  <Button
+                    variant="hero"
+                    className="rounded-full"
+                    asChild
+                  >
+                    <a href={`mailto:${selectedCandidate.email}?subject=EduProof Interview Invitation`}>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Contact Candidate
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
           )}

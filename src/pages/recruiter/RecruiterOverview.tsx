@@ -401,17 +401,19 @@ const RecruiterOverview = () => {
                       View Verified Credentials
                     </Button>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-full text-xs"
-                      asChild
-                    >
-                      <a href={`mailto:${candidate.email}?subject=EduProof Inquiry regarding your Verified Credentials`}>
-                        <Mail className="w-3.5 h-3.5 mr-1" />
-                        Contact
-                      </a>
-                    </Button>
+                    {candidate.email && (
+  <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full text-xs"
+                        asChild
+                      >
+                        <a href={`mailto:${candidate.email}?subject=EduProof Inquiry regarding your Verified Credentials`}>
+                          <Mail className="w-3.5 h-3.5 mr-1" />
+                          Contact
+                        </a>
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
@@ -435,7 +437,7 @@ const RecruiterOverview = () => {
                       {selectedCandidate.name}
                     </DialogTitle>
                     <DialogDescription className="text-xs text-muted-foreground">
-                      {selectedCandidate.email} • {selectedCandidate.verifiedDate}
+                      {selectedCandidate.email && `${selectedCandidate.email} • `}{selectedCandidate.verifiedDate}
                     </DialogDescription>
                   </div>
                 </div>
@@ -500,16 +502,18 @@ const RecruiterOverview = () => {
                 >
                   Close
                 </Button>
-                <Button
-                  variant="hero"
-                  className="rounded-full"
-                  asChild
-                >
-                  <a href={`mailto:${selectedCandidate.email}?subject=Interview Invitation via EduProof`}>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Connect with Candidate
-                  </a>
-                </Button>
+                {selectedCandidate.email && (
+  <Button
+                    variant="hero"
+                    className="rounded-full"
+                    asChild
+                  >
+                    <a href={`mailto:${selectedCandidate.email}?subject=Interview Invitation via EduProof`}>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Connect with Candidate
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
           )}

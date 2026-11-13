@@ -10,7 +10,7 @@ const corsHeaders = {
 
 // UUID validation schema
 const CertificateIdSchema = z.object({
-  certificateId: z.string().uuid("Invalid certificate ID format"),
+  certificateId: z.string().trim().min(1).max(100),
 });
 
 // Rate limiting configuration for public endpoint
@@ -124,35 +124,46 @@ serve(async (req) => {
     console.log(`Public verification request for certificate: ${certificateId}`);
 
     // Fetch only public-safe certificate info
-    const { data: certificate, error } = await supabaseAdmin
-      .from("certificates")
-      .select("id, title, issuer, verification_status, issue_date, created_at")
-      .eq("id", certificateId)
-      .maybeSingle();
+    const isUuid = z.string().uuid().safeParse(certificateId).success;
+    const { data: certificate, error } = isUuid
+      ? await supabaseAdmin
+        .from("certificates")
+        .select("id, title, issuer, verification_status, issue_date, created_at")
+        .eq("id", certificateId)
+        .maybeSingle()
+      : { data: null, error: null };
 
     if (error) {
-      console.error("Database error:", error);
-      return new Response(
-        JSON.stringify({ error: "Failed to verify certificate" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Failed to verify certificate" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (!certificate) {
-      return new Response(
-        JSON.stringify({ 
-          found: false, 
-          message: "No certificate found with this ID" 
-        }),
-        { 
-          status: 404, 
-          headers: { 
-            ...corsHeaders, 
-            "Content-Type": "application/json",
-            "X-RateLimit-Remaining": String(rateLimitResult.remaining)
-          } 
-        }
-      );
+      const { data: issued, error: issuedError } = await supabaseAdmin
+        .from("issued_certificates")
+        .select("certificate_id, course_name, issue_date, issued_at")
+        .eq("certificate_id", certificateId)
+        .maybeSingle();
+
+      const headers = { ...corsHeaders, "Content-Type": "application/json" };
+      if (issuedError) {
+        return new Response(JSON.stringify({ error: "Failed to verify certificate" }), { status: 500, headers });
+      }
+      if (!issued) {
+        return new Response(JSON.stringify({ found: false, message: "No certificate found with this ID" }), { headers });
+      }
+      return new Response(JSON.stringify({
+        found: true,
+        certificate: {
+          id: issued.certificate_id,
+          title: issued.course_name,
+          issuer: "Issuing institution",
+          status: "verified",
+          issueDate: issued.issue_date,
+          verifiedAt: issued.issued_at,
+        },
+      }), { headers });
     }
 
     console.log(`Certificate found: ${certificate.title} - Status: ${certificate.verification_status}`);

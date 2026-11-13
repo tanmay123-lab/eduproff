@@ -54,69 +54,12 @@ export default function PublicVerify() {
         return;
       }
       throw error || new Error("Edge function unavailable");
-    } catch (error) {
-      console.warn("Edge function unavailable, attempting direct database lookup:", error);
-      
-      // Fallback: Query database directly
-      try {
-        const cleanId = id.trim();
-        const { data: issuedCert } = await supabase
-          .from("issued_certificates")
-          .select("*")
-          .eq("certificate_id", cleanId)
-          .maybeSingle();
-
-        if (issuedCert) {
-          setResult({
-            verified: true,
-            message: "Certificate verified against institutional registry.",
-            certificate: {
-              id: issuedCert.certificate_id,
-              title: "Verified Academic Credential",
-              issuer: "Accredited University / Institution",
-              status: "verified",
-              issueDate: issuedCert.created_at ? new Date(issuedCert.created_at).toLocaleDateString() : null,
-              verifiedAt: new Date().toISOString(),
-            },
-          });
-          return;
-        }
-
-        const { data: cert } = await supabase
-          .from("certificates")
-          .select("*")
-          .eq("id", cleanId)
-          .maybeSingle();
-
-        if (cert) {
-          setResult({
-            verified: cert.verification_status === "verified",
-            message: cert.verification_message || (cert.verification_status === "verified" ? "Certificate successfully verified." : "Certificate under review."),
-            certificate: {
-              id: cert.id,
-              title: cert.title,
-              issuer: cert.issuer,
-              status: cert.verification_status,
-              issueDate: cert.issue_date,
-              verifiedAt: cert.created_at,
-            },
-          });
-          return;
-        }
-
-        // Not found in database
-        setResult({
-          verified: false,
-          message: "No certificate found matching the provided identifier. Please check the Certificate ID and try again.",
-        });
-      } catch (dbError) {
-        console.error("Direct lookup error:", dbError);
-        toast({
-          title: "Verification Failed",
-          description: "Unable to reach database. Please check your connection and try again.",
-          variant: "destructive",
-        });
-      }
+    } catch {
+      toast({
+        title: "Verification unavailable",
+        description: "Please check your connection and try again shortly.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
