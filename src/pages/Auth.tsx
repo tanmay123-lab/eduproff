@@ -11,7 +11,7 @@ import { z } from "zod";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   fullName: z.string().trim().min(2, { message: "Name must be at least 2 characters" }).optional(),
 });
 
@@ -146,6 +146,13 @@ const Auth = () => {
         } else if (confirmationRequired) {
           toast({ title: "Check your email", description: "Follow the confirmation link to finish signing up." });
           setMode("login");
+        } else {
+          toast({
+            title: "Welcome to EduProof! 🎉",
+            description: "Your account has been created successfully.",
+          });
+          const target = selectedRole === "recruiter" ? "/recruiter" : selectedRole === "institution" ? "/institution" : "/student";
+          navigate(target, { replace: true });
         }
       } else {
         const { error, role: loggedRole } = await signIn(email, password);

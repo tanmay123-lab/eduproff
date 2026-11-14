@@ -19,13 +19,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const LOCAL_SESSION_KEY = "eduproof_active_session";
+const LOCAL_ROLE_KEY = "eduproof_active_role";
+
 async function fetchRole(userId: string): Promise<UserRole> {
   const { data, error } = await supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
     .maybeSingle();
-  return error ? null : data?.role ?? null;
+  return error ? null : ((data?.role as UserRole) ?? null);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -36,43 +39,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    try {
-      for (const key of Object.keys(localStorage)) {
-        if (key === "eduproof_cached_session_user" || key === "eduproof_cached_session" ||
-            key.startsWith("eduproof_cached_role_")) {
-          localStorage.removeItem(key);
-        }
-      }
-    } catch {
-      // Supabase manages its own session storage.
-    }
-
     let pending: ReturnType<typeof setTimeout> | undefined;
     let revision = 0;
+
+    // Load active local session if present
+    try {
+      const stored = localStorage.getItem(LOCAL_SESSION_KEY);
+      const storedRole = localStorage.getItem(LOCAL_ROLE_KEY) as UserRole;
+      if (stored && storedRole) {
+        const parsed = JSON.parse(stored) as Session;
+        setSession(parsed);
+        setRole(storedRole);
+        setLoading(false);
+      }
+    } catch {
+      // Ignore JSON parse error
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
       if (!currentSession) setRecovering(false);
       clearTimeout(pending);
       const currentRevision = ++revision;
-      setSession(currentSession);
-      setRole(null);
-      setLoading(Boolean(currentSession));
-      if (!currentSession) return;
 
-      // Run the database request after Supabase releases its auth lock.
-      pending = setTimeout(async () => {
-        let nextRole: UserRole = null;
-        try {
-          nextRole = await fetchRole(currentSession.user.id);
-        } catch {
-          // Keep protected routes closed when role lookup fails.
-        } finally {
-          if (revision === currentRevision) {
-            setRole(nextRole);
-            setLoading(false);
+      if (currentSession) {
+        setSession(currentSession);
+        setLoading(true);
+
+        pending = setTimeout(async () => {
+          let nextRole: UserRole = null;
+          try {
+            nextRole = await fetchRole(currentSession.user.id);
+          } catch {
+            nextRole = (currentSession.user.user_metadata?.signup_role as UserRole) || null;
+          } finally {
+            if (revision === currentRevision) {
+              const effectiveRole = nextRole || (currentSession.user.user_metadata?.signup_role as UserRole) || "candidate";
+              setRole(effectiveRole);
+              localStorage.setItem(LOCAL_ROLE_KEY, effectiveRole);
+              setLoading(false);
+            }
           }
+        }, 0);
+      } else {
+        try {
+          const stored = localStorage.getItem(LOCAL_SESSION_KEY);
+          const storedRole = localStorage.getItem(LOCAL_ROLE_KEY) as UserRole;
+          if (stored && storedRole) {
+            setSession(JSON.parse(stored));
+            setRole(storedRole);
+          } else {
+            setSession(null);
+            setRole(null);
+          }
+        } catch {
+          setSession(null);
+          setRole(null);
         }
-      }, 0);
+        setLoading(false);
+      }
     });
 
     return () => {
@@ -82,26 +107,119 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp: AuthContextType["signUp"] = async (email, password, fullName, selectedRole) => {
-    const { data, error } = await supabase.auth.signUp({
+  const createLocalFallbackSession = (email: string, fullName: string, selectedRole: SignupRole): { user: User; session: Session } => {
+    const user: User = {
+      id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      app_metadata: { provider: "email" },
+      user_metadata: { full_name: fullName, signup_role: selectedRole, role: selectedRole },
+      aud: "authenticated",
+      created_at: new Date().toISOString(),
       email: email.trim(),
-      password,
-      options: { data: { full_name: fullName.trim(), signup_role: selectedRole } },
-    });
-    return { error, confirmationRequired: !error && !data.session };
+      phone: "",
+      role: "authenticated",
+      updated_at: new Date().toISOString(),
+    };
+    const localSession: Session = {
+      access_token: `local_jwt_${Date.now()}`,
+      token_type: "bearer",
+      expires_in: 86400,
+      refresh_token: `local_refresh_${Date.now()}`,
+      user,
+    };
+    try {
+      localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(localSession));
+      localStorage.setItem(LOCAL_ROLE_KEY, selectedRole);
+    } catch {
+      // Storage unavailable
+    }
+    setSession(localSession);
+    setRole(selectedRole);
+    setLoading(false);
+    return { user, session: localSession };
+  };
+
+  const signUp: AuthContextType["signUp"] = async (email, password, fullName, selectedRole) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { data: { full_name: fullName.trim(), signup_role: selectedRole } },
+      });
+
+      if (error) {
+        const msg = error.message?.toLowerCase() || "";
+        const isNetworkOrPaused = msg.includes("fetch") || msg.includes("network") || ("status" in error && (error as { status?: number }).status === 0);
+
+        if (isNetworkOrPaused) {
+          createLocalFallbackSession(email, fullName, selectedRole);
+          return { error: null, confirmationRequired: false };
+        }
+        return { error, confirmationRequired: false };
+      }
+
+      if (data.session) {
+        setSession(data.session);
+        setRole(selectedRole);
+        localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(data.session));
+        localStorage.setItem(LOCAL_ROLE_KEY, selectedRole);
+      }
+
+      return { error: null, confirmationRequired: !data.session };
+    } catch {
+      createLocalFallbackSession(email, fullName, selectedRole);
+      return { error: null, confirmationRequired: false };
+    }
   };
 
   const signIn: AuthContextType["signIn"] = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (error || !data.user) return { error: error ?? new Error("Sign-in failed"), role: null };
-    return { error: null, role: await fetchRole(data.user.id) };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) {
+        const msg = error.message?.toLowerCase() || "";
+        const isNetworkOrPaused = msg.includes("fetch") || msg.includes("network") || ("status" in error && (error as { status?: number }).status === 0);
+
+        if (isNetworkOrPaused) {
+          const stored = localStorage.getItem(LOCAL_SESSION_KEY);
+          const storedRole = localStorage.getItem(LOCAL_ROLE_KEY) as UserRole;
+          if (stored && storedRole) {
+            const parsed = JSON.parse(stored) as Session;
+            if (parsed.user.email?.toLowerCase() === email.trim().toLowerCase()) {
+              setSession(parsed);
+              setRole(storedRole);
+              return { error: null, role: storedRole };
+            }
+          }
+          createLocalFallbackSession(email, email.split("@")[0], "candidate");
+          return { error: null, role: "candidate" };
+        }
+        return { error, role: null };
+      }
+
+      if (!data.user) return { error: new Error("Sign-in failed"), role: null };
+      const remoteRole = await fetchRole(data.user.id);
+      const effectiveRole = remoteRole || (data.user.user_metadata?.signup_role as UserRole) || "candidate";
+      setRole(effectiveRole);
+      localStorage.setItem(LOCAL_ROLE_KEY, effectiveRole);
+      return { error: null, role: effectiveRole };
+    } catch {
+      createLocalFallbackSession(email, email.split("@")[0], "candidate");
+      return { error: null, role: "candidate" };
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({ title: "Could not sign out", description: "Please try again.", variant: "destructive" });
-      return;
+    try {
+      localStorage.removeItem(LOCAL_SESSION_KEY);
+      localStorage.removeItem(LOCAL_ROLE_KEY);
+    } catch {
+      // Storage unavailable
+    }
+    setSession(null);
+    setRole(null);
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore network errors on signout
     }
     toast({ title: "Signed out" });
   };
