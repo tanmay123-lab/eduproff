@@ -7,7 +7,7 @@ const SUPABASE_URL =
 
 const SUPABASE_PUBLISHABLE_KEY = 
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.empty";
+  "sb_publishable_tMsRWpgAqQDIUCxsQmODJA_SHZ0Cl1W";
 
 if (!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
   console.warn("VITE_SUPABASE_PUBLISHABLE_KEY is not defined in environment variables. Supabase requests will fail until configured.");
