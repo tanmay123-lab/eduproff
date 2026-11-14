@@ -112,7 +112,37 @@ const Auth = () => {
       } else if (mode === "signup" && selectedRole) {
         const { error, confirmationRequired } = await signUp(email, password, fullName, selectedRole);
         if (error) {
-          toast({ title: "Could not create an account", variant: "destructive" });
+          const msg = error.message?.toLowerCase() || "";
+          const status = "status" in error && typeof (error as { status?: unknown }).status === "number"
+            ? (error as { status: number }).status
+            : null;
+
+          if (msg.includes("already registered") || msg.includes("already been registered")) {
+            toast({
+              title: "Account already exists",
+              description: "This email is already registered. Please log in instead.",
+              variant: "destructive",
+            });
+            setMode("login");
+          } else if (msg.includes("fetch") || msg.includes("network") || status === 0) {
+            toast({
+              title: "Database Connection Error",
+              description: "Unable to reach Supabase backend. Please check your Supabase dashboard to verify your project is unpaused and active.",
+              variant: "destructive",
+            });
+          } else if (msg.includes("rate limit") || status === 429) {
+            toast({
+              title: "Rate limit exceeded",
+              description: "Too many signup attempts. Please wait a few minutes before trying again.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Could not create an account",
+              description: error.message || "An unexpected error occurred. Please try again.",
+              variant: "destructive",
+            });
+          }
         } else if (confirmationRequired) {
           toast({ title: "Check your email", description: "Follow the confirmation link to finish signing up." });
           setMode("login");
@@ -120,9 +150,22 @@ const Auth = () => {
       } else {
         const { error, role: loggedRole } = await signIn(email, password);
         if (error || !loggedRole) {
+          const msg = error?.message?.toLowerCase() || "";
+          const status = error && "status" in error && typeof (error as { status?: unknown }).status === "number"
+            ? (error as { status: number }).status
+            : null;
+
+          let desc = "Check your credentials and try again.";
+          if (msg.includes("fetch") || msg.includes("network") || status === 0) {
+            desc = "Unable to reach Supabase backend. Please verify your Supabase project is active and unpaused.";
+          } else if (!error && !loggedRole) {
+            desc = "Your account role could not be loaded. Please try again.";
+          } else if (error?.message) {
+            desc = error.message;
+          }
           toast({
             title: "Login failed",
-            description: error ? "Check your credentials and try again." : "Your account role could not be loaded. Please try again.",
+            description: desc,
             variant: "destructive",
           });
         }
